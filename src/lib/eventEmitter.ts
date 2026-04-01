@@ -5,8 +5,6 @@ const globalForEventEmitter = globalThis as unknown as {
 };
 
 export const eventEmitter =
-  globalForEventEmitter.eventEmitter || new EventEmitter();
+  globalForEventEmitter.eventEmitter ?? new EventEmitter();
 
-if (process.env.NODE_ENV !== "production") {
-  globalForEventEmitter.eventEmitter = eventEmitter;
-}
+globalForEventEmitter.eventEmitter = eventEmitter;
