@@ -11,6 +11,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npx prisma generate
+ENV DATABASE_URL="postgresql://fake:fake@localhost:5432/fake"
 RUN npm run build
 
 FROM base AS runner
