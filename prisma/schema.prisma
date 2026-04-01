@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum MatchStatus {
+  PENDING
+  IN_PROGRESS
+  FINISHED
+}
+
+model Tournament {
+  id             String   @id @default(cuid())
+  name           String
+  date           DateTime
+  numberOfFields Int
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  teams   Team[]
+  matches Match[]
+}
+
+model Team {
+  id           String  @id @default(cuid())
+  name         String
+  color        String
+  playersList  String?
+  tournamentId String
+
+  tournament  Tournament @relation(fields: [tournamentId], references: [id])
+  homeMatches Match[]    @relation("TeamA")
+  awayMatches Match[]    @relation("TeamB")
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Match {
+  id           String      @id @default(cuid())
+  fieldName    String
+  startTime    DateTime?
+  status       MatchStatus @default(PENDING)
+  scoreTeamA   Int         @default(0)
+  scoreTeamB   Int         @default(0)
+  statsTeamA   Json        @default("{\"homeRuns\": 0, \"ballesGobees\": 0}")
+  statsTeamB   Json        @default("{\"homeRuns\": 0, \"ballesGobees\": 0}")
+  tournamentId String
+  teamAId      String
+  teamBId      String
+
+  tournament Tournament  @relation(fields: [tournamentId], references: [id])
+  teamA      Team        @relation("TeamA", fields: [teamAId], references: [id])
+  teamB      Team        @relation("TeamB", fields: [teamBId], references: [id])
+  messages   LiveMessage[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
+
+model LiveMessage {
+  id            String   @id @default(cuid())
+  pseudo        String
+  content       String
+  isSystemEvent Boolean  @default(false)
+  matchId       String?
+
+  match     Match?   @relation(fields: [matchId], references: [id])
+  createdAt DateTime @default(now())
+}
