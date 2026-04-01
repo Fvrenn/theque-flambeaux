@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { MatchStatus } from "@prisma/client";
+import { eventEmitter } from "@/lib/eventEmitter";
 
 export async function generateMatchesForTournament(tournamentId: string) {
   try {
@@ -17,7 +18,6 @@ export async function generateMatchesForTournament(tournamentId: string) {
     const matchesData = [];
     const numFields = tournament.numberOfFields;
 
-    // Génération Round-Robin (chaque équipe contre toutes les autres une fois)
     for (let i = 0; i < teams.length; i++) {
       for (let j = i + 1; j < teams.length; j++) {
         matchesData.push({
@@ -27,7 +27,6 @@ export async function generateMatchesForTournament(tournamentId: string) {
       }
     }
 
-    // Création des matchs en base avec répartition sur les terrains
     const createMatches = matchesData.map((m, index) => {
       const fieldIndex = (index % numFields) + 1;
       return prisma.match.create({
@@ -65,17 +64,17 @@ export async function updateMatchScore(data: UpdateMatchScoreData) {
 
     if (!match) throw new Error("Match non trouvé");
 
-    if (data.team === 'A') {
-      return await prisma.match.update({
-        where: { id: data.matchId },
-        data: { scoreTeamA: Math.max(0, match.scoreTeamA + data.pointsToAdd) },
-      });
-    } else {
-      return await prisma.match.update({
-        where: { id: data.matchId },
-        data: { scoreTeamB: Math.max(0, match.scoreTeamB + data.pointsToAdd) },
-      });
-    }
+    const updatedMatch = await prisma.match.update({
+      where: { id: data.matchId },
+      data: { 
+        scoreTeamA: data.team === 'A' ? Math.max(0, match.scoreTeamA + data.pointsToAdd) : undefined,
+        scoreTeamB: data.team === 'B' ? Math.max(0, match.scoreTeamB + data.pointsToAdd) : undefined,
+      },
+      include: { teamA: true, teamB: true }
+    });
+
+    eventEmitter.emit('matchUpdated', updatedMatch);
+    return updatedMatch;
   } catch (error) {
     console.error("Error updating match score:", error);
     throw new Error("Erreur lors de la mise à jour du score");
@@ -105,10 +104,14 @@ export async function addMatchStat(data: AddMatchStatData) {
       [data.statType]: Math.max(0, (currentStats[data.statType] || 0) + (data.increment ?? 1)),
     };
 
-    return await prisma.match.update({
+    const updatedMatch = await prisma.match.update({
       where: { id: data.matchId },
       data: { [statKey]: newStats },
+      include: { teamA: true, teamB: true }
     });
+
+    eventEmitter.emit('matchUpdated', updatedMatch);
+    return updatedMatch;
   } catch (error) {
     console.error("Error adding match stat:", error);
     throw new Error("Erreur lors de l'ajout de la statistique");
@@ -117,10 +120,14 @@ export async function addMatchStat(data: AddMatchStatData) {
 
 export async function updateMatchStatus(matchId: string, status: MatchStatus) {
   try {
-    return await prisma.match.update({
+    const updatedMatch = await prisma.match.update({
       where: { id: matchId },
       data: { status },
+      include: { teamA: true, teamB: true }
     });
+
+    eventEmitter.emit('matchUpdated', updatedMatch);
+    return updatedMatch;
   } catch (error) {
     console.error("Error updating match status:", error);
     throw new Error("Erreur lors de la mise à jour du statut");
@@ -129,7 +136,7 @@ export async function updateMatchStatus(matchId: string, status: MatchStatus) {
 
 export async function resetMatch(matchId: string) {
   try {
-    return await prisma.match.update({
+    const updatedMatch = await prisma.match.update({
       where: { id: matchId },
       data: {
         status: MatchStatus.PENDING,
@@ -138,7 +145,11 @@ export async function resetMatch(matchId: string) {
         statsTeamA: { homeRun: 0, balleGobee: 0 },
         statsTeamB: { homeRun: 0, balleGobee: 0 },
       },
+      include: { teamA: true, teamB: true }
     });
+
+    eventEmitter.emit('matchUpdated', updatedMatch);
+    return updatedMatch;
   } catch (error) {
     console.error("Error resetting match:", error);
     throw new Error("Erreur lors de la réinitialisation du match");

@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { eventEmitter } from "@/lib/eventEmitter";
 
 interface AddLiveMessageData {
   pseudo: string;
@@ -19,6 +20,8 @@ export async function addLiveMessage(data: AddLiveMessageData) {
         isSystemEvent: data.isSystemEvent ?? false,
       },
     });
+
+    eventEmitter.emit('newMessage', message);
     return message;
   } catch (error) {
     console.error("Error adding live message:", error);
