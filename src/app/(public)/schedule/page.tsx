@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-
+export const dynamic = "force-dynamic";
 export default async function SchedulePage() {
   const matches = await prisma.match.findMany({
     include: { teamA: true, teamB: true },
@@ -18,8 +18,8 @@ export default async function SchedulePage() {
       <Tabs defaultValue={fields[0]} className="w-full">
         <TabsList className="w-full justify-start bg-slate-100/50 p-1 mb-4 overflow-x-auto h-auto">
           {fields.map(field => (
-            <TabsTrigger 
-              key={field} 
+            <TabsTrigger
+              key={field}
               value={field}
               className="px-4 py-2 text-[10px] font-black uppercase data-[state=active]:bg-white data-[state=active]:text-primary"
             >
@@ -33,19 +33,17 @@ export default async function SchedulePage() {
             {matches
               .filter(m => m.fieldName === field)
               .map(match => (
-                <div 
-                  key={match.id} 
-                  className={`bg-white rounded-2xl p-4 shadow-sm border ${
-                    match.status === "IN_PROGRESS" ? "border-primary ring-1 ring-primary/20" : "border-slate-100"
-                  } flex flex-col gap-3`}
+                <div
+                  key={match.id}
+                  className={`bg-white rounded-2xl p-4 shadow-sm border ${match.status === "IN_PROGRESS" ? "border-primary ring-1 ring-primary/20" : "border-slate-100"
+                    } flex flex-col gap-3`}
                 >
                   <div className="flex justify-between items-center">
                     <span className="text-[10px] font-black text-slate-400 uppercase">Match {match.id.slice(-4)}</span>
-                    <Badge 
+                    <Badge
                       variant={match.status === "IN_PROGRESS" ? "default" : "outline"}
-                      className={`text-[9px] font-black tracking-tighter ${
-                        match.status === "IN_PROGRESS" ? "bg-red-600 animate-pulse border-none" : ""
-                      }`}
+                      className={`text-[9px] font-black tracking-tighter ${match.status === "IN_PROGRESS" ? "bg-red-600 animate-pulse border-none" : ""
+                        }`}
                     >
                       {match.status === "IN_PROGRESS" ? "EN DIRECT" : match.status}
                     </Badge>
