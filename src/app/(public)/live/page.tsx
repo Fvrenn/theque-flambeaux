@@ -1,7 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { ChatBox } from "@/components/features/live/ChatBox";
 import { LiveChat } from "@/components/features/live/LiveChat";
-
+import { PrismaClient } from '@prisma/client'
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 export default async function LivePage() {
   const messages = await prisma.liveMessage.findMany({
     orderBy: { createdAt: "desc" },
@@ -11,7 +13,7 @@ export default async function LivePage() {
   return (
     <div className="flex flex-col h-[calc(100vh-140px)] gap-4">
       <LiveChat initialMessages={messages as any} />
-      
+
       <div className="shrink-0 animate-in slide-in-from-bottom-4 duration-500">
         <ChatBox />
       </div>
