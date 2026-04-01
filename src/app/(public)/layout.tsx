@@ -21,12 +21,12 @@ export default function PublicLayout({
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col pb-20">
+    <div className="min-h-screen bg-background flex flex-col pb-24">
       <AutoRefresh interval={30000} />
       
-      <header className="bg-white border-b border-slate-100 py-4 px-6 sticky top-0 z-10 shadow-sm">
-        <h1 className="text-xl font-black text-center text-slate-900 tracking-tight">
-          FLAMBEAUX <span className="text-primary">THÈQUE</span>
+      <header className="bg-white/80 backdrop-blur-md py-6 px-6 sticky top-0 z-10 border-b border-kawaii-pink/20">
+        <h1 className="text-xl font-black text-center text-slate-800 tracking-tighter uppercase">
+          Flambeaux <span className="text-primary italic">Thèque</span> ✨
         </h1>
       </header>
 
@@ -34,7 +34,7 @@ export default function PublicLayout({
         {children}
       </main>
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-2 py-2 flex justify-around items-center z-50">
+      <nav className="fixed bottom-6 left-4 right-6 bg-white/90 backdrop-blur-lg border-2 border-slate-50 px-2 py-3 flex justify-around items-center z-50 rounded-[2rem] shadow-[0_10px_40px_rgba(0,0,0,0.08)] max-w-md mx-auto">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
@@ -42,12 +42,12 @@ export default function PublicLayout({
             <Link 
               key={item.href} 
               href={item.href}
-              className={`flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition-colors ${
-                isActive ? "text-primary" : "text-slate-400"
+              className={`flex flex-col items-center gap-1.5 px-4 py-2 rounded-2xl transition-all duration-300 ${
+                isActive ? "bg-kawaii-pink/20 text-primary scale-110" : "text-slate-400 hover:text-slate-600"
               }`}
             >
-              <Icon className={`h-6 w-6 ${isActive ? "fill-primary/10" : ""}`} />
-              <span className="text-[10px] font-bold uppercase tracking-wider">{item.label}</span>
+              <Icon className={`h-5 w-5 ${isActive ? "fill-primary/10 stroke-[2.5px]" : "stroke-[2px]"}`} />
+              <span className="text-[9px] font-black uppercase tracking-widest">{item.label}</span>
             </Link>
           );
         })}

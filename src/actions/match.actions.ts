@@ -18,6 +18,7 @@ export async function generateMatchesForTournament(tournamentId: string) {
     const matchesData = [];
     const numFields = tournament.numberOfFields;
 
+    // Génération Round-Robin (chaque équipe contre toutes les autres une fois)
     for (let i = 0; i < teams.length; i++) {
       for (let j = i + 1; j < teams.length; j++) {
         matchesData.push({
@@ -27,6 +28,7 @@ export async function generateMatchesForTournament(tournamentId: string) {
       }
     }
 
+    // Création des matchs en base avec répartition sur les terrains
     const createMatches = matchesData.map((m, index) => {
       const fieldIndex = (index % numFields) + 1;
       return prisma.match.create({
