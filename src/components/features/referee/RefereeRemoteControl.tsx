@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { updateMatchScore, addMatchStat, updateMatchStatus } from "@/actions/match.actions";
 import { Button } from "@/components/ui/button";
 import { MatchStatus } from "@prisma/client";
+import { Undo2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -54,16 +55,16 @@ export function RefereeRemoteControl({ match }: RemoteProps) {
     handleAction(() => updateMatchStatus(match.id, MatchStatus.FINISHED));
   }
 
-  const TeamControl = ({ 
-    team, 
-    score, 
-    stats, 
-    teamKey 
-  }: { 
-    team: { name: string, color: string }, 
-    score: number, 
-    stats: any, 
-    teamKey: 'A' | 'B' 
+  const TeamControl = ({
+    team,
+    score,
+    stats,
+    teamKey
+  }: {
+    team: { name: string, color: string },
+    score: number,
+    stats: any,
+    teamKey: 'A' | 'B'
   }) => (
     <div className="flex flex-col gap-4 p-4 h-full bg-white">
       <div className="text-center mb-2">
@@ -94,8 +95,8 @@ export function RefereeRemoteControl({ match }: RemoteProps) {
         {/* Home Runs */}
         <div className="space-y-2">
           <div className="flex justify-between items-center px-1">
-             <span className="text-[10px] font-bold uppercase text-slate-400">Home Runs</span>
-             <span className="text-lg font-black">{stats.homeRun || 0}</span>
+            <span className="text-[10px] font-bold uppercase text-slate-400">Home Runs</span>
+            <span className="text-lg font-black">{stats.homeRun || 0}</span>
           </div>
           <div className="flex gap-2">
             <Button
@@ -130,8 +131,8 @@ export function RefereeRemoteControl({ match }: RemoteProps) {
         {/* Balles Gobées */}
         <div className="space-y-2">
           <div className="flex justify-between items-center px-1">
-             <span className="text-[10px] font-bold uppercase text-slate-400">Balles Gobées</span>
-             <span className="text-lg font-black">{stats.balleGobee || 0}</span>
+            <span className="text-[10px] font-bold uppercase text-slate-400">Balles Gobées</span>
+            <span className="text-lg font-black">{stats.balleGobee || 0}</span>
           </div>
           <div className="flex gap-2">
             <Button
@@ -184,7 +185,7 @@ export function RefereeRemoteControl({ match }: RemoteProps) {
         {!isFinished ? (
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button 
+              <Button
                 variant="destructive"
                 className="w-full h-16 text-xl font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all"
                 disabled={isPending}
@@ -201,7 +202,7 @@ export function RefereeRemoteControl({ match }: RemoteProps) {
               </AlertDialogHeader>
               <AlertDialogFooter className="flex-row gap-2">
                 <AlertDialogCancel className="flex-1 mt-0">Annuler</AlertDialogCancel>
-                <AlertDialogAction 
+                <AlertDialogAction
                   className="flex-1 bg-red-600 hover:bg-red-700"
                   onClick={finishMatch}
                 >
@@ -212,17 +213,17 @@ export function RefereeRemoteControl({ match }: RemoteProps) {
           </AlertDialog>
         ) : (
           <div className="space-y-4">
-            <Button 
+            <Button
               variant="outline"
               className="w-full h-16 text-xl font-black uppercase tracking-widest"
               onClick={() => router.push('/referee')}
             >
               Retour aux terrains
             </Button>
-            
+
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button 
+                <Button
                   variant="ghost"
                   size="sm"
                   className="w-full text-slate-400 hover:text-slate-600 text-[10px] font-bold"
@@ -241,7 +242,7 @@ export function RefereeRemoteControl({ match }: RemoteProps) {
                 </AlertDialogHeader>
                 <AlertDialogFooter className="flex-row gap-2">
                   <AlertDialogCancel className="flex-1 mt-0">Annuler</AlertDialogCancel>
-                  <AlertDialogAction 
+                  <AlertDialogAction
                     className="flex-1 bg-primary hover:bg-princeton-orange-600"
                     onClick={() => handleAction(() => updateMatchStatus(match.id, MatchStatus.IN_PROGRESS))}
                   >
