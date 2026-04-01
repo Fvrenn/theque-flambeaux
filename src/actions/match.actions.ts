@@ -68,12 +68,12 @@ export async function updateMatchScore(data: UpdateMatchScoreData) {
     if (data.team === 'A') {
       return await prisma.match.update({
         where: { id: data.matchId },
-        data: { scoreTeamA: match.scoreTeamA + data.pointsToAdd },
+        data: { scoreTeamA: Math.max(0, match.scoreTeamA + data.pointsToAdd) },
       });
     } else {
       return await prisma.match.update({
         where: { id: data.matchId },
-        data: { scoreTeamB: match.scoreTeamB + data.pointsToAdd },
+        data: { scoreTeamB: Math.max(0, match.scoreTeamB + data.pointsToAdd) },
       });
     }
   } catch (error) {
@@ -86,6 +86,7 @@ interface AddMatchStatData {
   matchId: string;
   team: 'A' | 'B';
   statType: 'homeRun' | 'balleGobee';
+  increment?: number;
 }
 
 export async function addMatchStat(data: AddMatchStatData) {
@@ -101,7 +102,7 @@ export async function addMatchStat(data: AddMatchStatData) {
     
     const newStats = {
       ...currentStats,
-      [data.statType]: (currentStats[data.statType] || 0) + 1,
+      [data.statType]: Math.max(0, (currentStats[data.statType] || 0) + (data.increment ?? 1)),
     };
 
     return await prisma.match.update({
@@ -123,5 +124,23 @@ export async function updateMatchStatus(matchId: string, status: MatchStatus) {
   } catch (error) {
     console.error("Error updating match status:", error);
     throw new Error("Erreur lors de la mise à jour du statut");
+  }
+}
+
+export async function resetMatch(matchId: string) {
+  try {
+    return await prisma.match.update({
+      where: { id: matchId },
+      data: {
+        status: MatchStatus.PENDING,
+        scoreTeamA: 0,
+        scoreTeamB: 0,
+        statsTeamA: { homeRun: 0, balleGobee: 0 },
+        statsTeamB: { homeRun: 0, balleGobee: 0 },
+      },
+    });
+  } catch (error) {
+    console.error("Error resetting match:", error);
+    throw new Error("Erreur lors de la réinitialisation du match");
   }
 }

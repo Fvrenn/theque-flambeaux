@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { AddTeamForm } from "@/components/features/admin/AddTeamForm";
 import { GenerateMatchesButton } from "@/components/features/admin/GenerateMatchesButton";
+import { MatchRescueActions } from "@/components/features/admin/MatchRescueActions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -110,10 +111,11 @@ export default async function TournamentDashboardPage({ params }: Props) {
                             {match.teamA.name} <span className="text-slate-400">vs</span> {match.teamB.name}
                           </TableCell>
                           <TableCell>{match.fieldName}</TableCell>
-                          <TableCell className="text-right">
+                          <TableCell className="text-right flex items-center justify-end gap-3">
                             <Badge variant={match.status === 'FINISHED' ? 'secondary' : 'outline'}>
                               {match.status}
                             </Badge>
+                            <MatchRescueActions matchId={match.id} status={match.status} />
                           </TableCell>
                         </TableRow>
                       ))}
