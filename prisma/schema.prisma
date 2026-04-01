@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Tournament {
+  id              String        @id @default(cuid())
+  name            String
+  date            DateTime
+  numberOfFields  Int
+  teams           Team[]
+  matches         Match[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model Team {
+  id              String        @id @default(cuid())
+  name            String
+  color           String
+  playersList     String?
+  tournamentId    String
+  tournament      Tournament    @relation(fields: [tournamentId], references: [id])
+  matchesA        Match[]       @relation("TeamA")
+  matchesB        Match[]       @relation("TeamB")
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+enum MatchStatus {
+  PENDING
+  IN_PROGRESS
+  FINISHED
+}
+
+model Match {
+  id              String        @id @default(cuid())
+  teamAId         String
+  teamA           Team          @relation("TeamA", fields: [teamAId], references: [id])
+  teamBId         String
+  teamB           Team          @relation("TeamB", fields: [teamBId], references: [id])
+  fieldName       String
+  startTime       DateTime?
+  status          MatchStatus   @default(PENDING)
+  scoreTeamA      Int           @default(0)
+  scoreTeamB      Int           @default(0)
+  statsTeamA      Json
+  statsTeamB      Json
+  tournamentId    String
+  tournament      Tournament    @relation(fields: [tournamentId], references: [id])
+  messages        LiveMessage[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model LiveMessage {
+  id              String        @id @default(cuid())
+  pseudo          String
+  content         String
+  matchId         String?
+  match           Match?        @relation(fields: [matchId], references: [id])
+  isSystemEvent   Boolean       @default(false)
+  createdAt       DateTime      @default(now())
+}
