@@ -80,7 +80,7 @@ export function FieldSchedule({ initialMatches }: FieldScheduleProps) {
                       variant="outline"
                       className="text-[9px] font-black tracking-widest uppercase py-0.5 px-2 bg-slate-50 border-slate-100 text-slate-400"
                     >
-                      Manche {match.manche}
+                      Tour {match.manche}
                     </Badge>
                   </div>
                   <Badge

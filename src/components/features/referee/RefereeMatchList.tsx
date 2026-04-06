@@ -9,6 +9,7 @@ import { RefereeFilter } from "./RefereeFilter";
 interface MatchListItem {
   id: string;
   fieldName: string;
+  manche: number;
   status: string;
   teamA: { name: string; color: string };
   teamB: { name: string; color: string };
@@ -25,7 +26,7 @@ export function RefereeMatchList({ matches }: { matches: MatchListItem[] }) {
     : matches;
 
   return (
-    <div className="max-w-5xl mx-auto w-full">
+    <div className="max-w-5xl mx-auto w-full pb-20">
       <RefereeFilter 
         fields={fields} 
         selectedField={selectedField} 
@@ -34,27 +35,33 @@ export function RefereeMatchList({ matches }: { matches: MatchListItem[] }) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredMatches.length > 0 ? (
-          filteredMatches.map((match) => (
-            <Link key={match.id} href={`/referee/${match.id}`}>
-              <Card className="hover:border-primary transition-all active:scale-[0.98] border-slate-200 shadow-sm overflow-hidden">
-                <div 
-                  className="h-2 w-full" 
-                  style={{ 
-                    background: `linear-gradient(to right, ${match.teamA.color}, ${match.teamB.color})` 
-                  }} 
-                />
-                <CardHeader>
-                  <div className="flex justify-between items-start mb-2">
-                    <Badge variant="outline" className="bg-white">
-                      {match.fieldName}
-                    </Badge>
-                    <Badge 
-                      variant={match.status === "IN_PROGRESS" ? "default" : "secondary"}
-                      className={match.status === "IN_PROGRESS" ? "bg-green-600 hover:bg-green-700" : ""}
-                    >
-                      {match.status === "IN_PROGRESS" ? "EN COURS" : "À VENIR"}
-                    </Badge>
-                  </div>
+          filteredMatches.map((match) => {
+            return (
+              <Link key={match.id} href={`/referee/${match.id}`}>
+                <Card className="hover:border-primary transition-all active:scale-[0.98] border-slate-200 shadow-sm overflow-hidden">
+                  <div 
+                    className="h-2 w-full" 
+                    style={{ 
+                      background: `linear-gradient(to right, ${match.teamA.color}, ${match.teamB.color})` 
+                    }} 
+                  />
+                  <CardHeader>
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex gap-2 items-center">
+                        <Badge variant="outline" className="bg-slate-900 text-white border-none text-[10px] font-black uppercase tracking-widest">
+                          Tour {match.manche}
+                        </Badge>
+                        <Badge variant="outline" className="bg-white">
+                          {match.fieldName}
+                        </Badge>
+                      </div>
+                      <Badge 
+                        variant={match.status === "IN_PROGRESS" ? "default" : "secondary"}
+                        className={match.status === "IN_PROGRESS" ? "bg-green-600 hover:bg-green-700" : ""}
+                      >
+                        {match.status === "IN_PROGRESS" ? "EN COURS" : "À VENIR"}
+                      </Badge>
+                    </div>
                   <CardTitle className="text-lg flex flex-col gap-1">
                     <span className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full" style={{ backgroundColor: match.teamA.color }} />
@@ -72,7 +79,8 @@ export function RefereeMatchList({ matches }: { matches: MatchListItem[] }) {
                 </CardHeader>
               </Card>
             </Link>
-          ))
+            );
+          })
         ) : (
           <div className="col-span-full py-20 text-center">
             <p className="text-slate-400 italic">Aucun match disponible pour ce terrain.</p>

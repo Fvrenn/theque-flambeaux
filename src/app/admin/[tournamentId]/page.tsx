@@ -43,7 +43,7 @@ export default async function TournamentDashboardPage({ params }: Props) {
             Dashboard d'administration • {tournament.numberOfFields} terrain(s)
           </p>
         </div>
-        <div className="w-64">
+        <div className="flex-1 max-w-md">
            <DangerZone tournamentId={tournamentId} />
         </div>
       </div>
@@ -129,7 +129,7 @@ export default async function TournamentDashboardPage({ params }: Props) {
                           <TableCell>
                             <div className="flex flex-col">
                               <span>{match.terrain || match.fieldName}</span>
-                              <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Manche {match.manche}</span>
+                              <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Tour {match.manche}</span>
                             </div>
                           </TableCell>
                           <TableCell className="text-right flex items-center justify-end gap-3">

@@ -14,23 +14,43 @@ export async function generateMatchesForTournament(tournamentId: string) {
     if (!tournament) throw new Error("Tournoi non trouvé");
     if (tournament.teams.length < 2) throw new Error("Il faut au moins 2 équipes");
 
-    const teams = tournament.teams;
-    const matchesData = [];
+    const teams = [...tournament.teams];
     const numFields = tournament.numberOfFields;
+    
+    // Algorithme de Berger (Circle Method) pour Round-Robin
+    const n = teams.length;
+    const isOdd = n % 2 !== 0;
+    const virtualN = isOdd ? n + 1 : n;
+    
+    const scheduledMatches = [];
+    const teamIndices = Array.from({ length: virtualN }, (_, i) => i);
 
-    // Génération Round-Robin (chaque équipe contre toutes les autres une fois)
-    for (let i = 0; i < teams.length; i++) {
-      for (let j = i + 1; j < teams.length; j++) {
-        matchesData.push({
-          teamAId: teams[i].id,
-          teamBId: teams[j].id,
-        });
+    const rounds = virtualN - 1;
+    const matchesPerRound = virtualN / 2;
+
+    for (let r = 0; r < rounds; r++) {
+      for (let i = 0; i < matchesPerRound; i++) {
+        const homeIdx = teamIndices[i];
+        const awayIdx = teamIndices[virtualN - 1 - i];
+        
+        // Si c'est une équipe réelle (pas le bye d'un nombre impair)
+        if (!isOdd || (homeIdx < n && awayIdx < n)) {
+          scheduledMatches.push({
+            teamAId: teams[homeIdx].id,
+            teamBId: teams[awayIdx].id,
+          });
+        }
       }
+      
+      // Rotation : on garde le premier élément (0) et on décale les autres circulairement
+      const last = teamIndices.pop()!;
+      teamIndices.splice(1, 0, last);
     }
 
     // Création des matchs en base avec répartition sur les terrains
-    const createMatches = matchesData.map((m, index) => {
+    const createMatches = scheduledMatches.map((m, index) => {
       const fieldIndex = (index % numFields) + 1;
+      const roundNumber = Math.floor(index / numFields) + 1;
       const terrainLabel = `Terrain ${fieldIndex}`;
       return prisma.match.create({
         data: {
@@ -38,8 +58,8 @@ export async function generateMatchesForTournament(tournamentId: string) {
           teamAId: m.teamAId,
           teamBId: m.teamBId,
           fieldName: terrainLabel,
-          terrain: terrainLabel, // On remplit les deux
-          manche: 1,
+          terrain: terrainLabel,
+          manche: roundNumber,
           status: MatchStatus.PENDING,
           statsTeamA: { homeRun: 0, balleGobee: 0 },
           statsTeamB: { homeRun: 0, balleGobee: 0 },
@@ -48,10 +68,10 @@ export async function generateMatchesForTournament(tournamentId: string) {
     });
 
     await Promise.all(createMatches);
-    return { success: true, count: matchesData.length };
+    return { success: true, count: scheduledMatches.length };
   } catch (error) {
     console.error("Error generating matches:", error);
-    throw new Error("Erreur lors de la génération des matchs");
+    throw new Error("Erreur lors de la génération du planning");
   }
 }
 

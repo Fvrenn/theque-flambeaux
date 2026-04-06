@@ -13,9 +13,10 @@ export default async function RefereePage() {
       teamB: true,
       tournament: true,
     },
-    orderBy: {
-      createdAt: "desc",
-    },
+    orderBy: [
+      { manche: "asc" },
+      { createdAt: "asc" },
+    ],
   });
 
   return (

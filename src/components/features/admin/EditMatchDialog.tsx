@@ -79,7 +79,7 @@ export function EditMatchDialog({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="manche">Manche</Label>
+            <Label htmlFor="manche">Tour (Rotation)</Label>
             <Input 
               id="manche" 
               type="number"
