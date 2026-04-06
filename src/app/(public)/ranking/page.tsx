@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { calculateRanking } from "@/lib/ranking";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Trophy, Target } from "lucide-react";
-
+export const dynamic = "force-dynamic";
 export default async function RankingPage() {
   const teams = await prisma.team.findMany();
   const matches = await prisma.match.findMany({

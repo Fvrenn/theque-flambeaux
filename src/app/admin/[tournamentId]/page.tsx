@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { AddTeamForm } from "@/components/features/admin/AddTeamForm";
+import { DangerZone } from "@/components/features/admin/DangerZone";
+import { EditMatchDialog } from "@/components/features/admin/EditMatchDialog";
 import { GenerateMatchesButton } from "@/components/features/admin/GenerateMatchesButton";
 import { MatchRescueActions } from "@/components/features/admin/MatchRescueActions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,11 +36,16 @@ export default async function TournamentDashboardPage({ params }: Props) {
 
   return (
     <div className="py-8">
-      <div className="mb-10">
-        <h2 className="text-3xl font-bold text-slate-900">{tournament.name}</h2>
-        <p className="text-slate-500">
-          Dashboard d'administration • {tournament.numberOfFields} terrain(s)
-        </p>
+      <div className="flex justify-between items-start mb-10">
+        <div>
+          <h2 className="text-3xl font-bold text-slate-900">{tournament.name}</h2>
+          <p className="text-slate-500">
+            Dashboard d'administration • {tournament.numberOfFields} terrain(s)
+          </p>
+        </div>
+        <div className="w-64">
+           <DangerZone tournamentId={tournamentId} />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -108,9 +115,23 @@ export default async function TournamentDashboardPage({ params }: Props) {
                       {tournament.matches.map((match) => (
                         <TableRow key={match.id}>
                           <TableCell className="font-medium">
-                            {match.teamA.name} <span className="text-slate-400">vs</span> {match.teamB.name}
+                            <div className="flex items-center gap-2">
+                              {match.teamA.name} <span className="text-slate-400 font-normal">vs</span> {match.teamB.name}
+                              <EditMatchDialog 
+                                matchId={match.id}
+                                initialTerrain={match.terrain || match.fieldName}
+                                initialManche={match.manche}
+                                teamAName={match.teamA.name}
+                                teamBName={match.teamB.name}
+                              />
+                            </div>
                           </TableCell>
-                          <TableCell>{match.fieldName}</TableCell>
+                          <TableCell>
+                            <div className="flex flex-col">
+                              <span>{match.terrain || match.fieldName}</span>
+                              <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Manche {match.manche}</span>
+                            </div>
+                          </TableCell>
                           <TableCell className="text-right flex items-center justify-end gap-3">
                             <Badge variant={match.status === 'FINISHED' ? 'secondary' : 'outline'}>
                               {match.status}

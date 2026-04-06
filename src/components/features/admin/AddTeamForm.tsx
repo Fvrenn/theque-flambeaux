@@ -21,9 +21,10 @@ export function AddTeamForm({ tournamentId }: { tournamentId: string }) {
     const formData = new FormData(event.currentTarget);
     const name = formData.get("name") as string;
     const color = formData.get("color") as string;
+    const playersList = formData.get("playersList") as string;
 
     try {
-      await addTeamToTournament({ name, color, tournamentId });
+      await addTeamToTournament({ name, color, tournamentId, playersList });
       router.refresh();
       (event.target as HTMLFormElement).reset();
     } catch (err) {
@@ -57,6 +58,15 @@ export function AddTeamForm({ tournamentId }: { tournamentId: string }) {
               />
               <span className="text-sm text-slate-500 italic">Cliquez pour choisir</span>
             </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="playersList">Joueurs (un par ligne ou séparés par des virgules)</Label>
+            <textarea
+              id="playersList"
+              name="playersList"
+              placeholder="Ex: Jean, Paul, Pierre..."
+              className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            />
           </div>
           {error && <p className="text-sm text-red-500">{error}</p>}
           <Button 

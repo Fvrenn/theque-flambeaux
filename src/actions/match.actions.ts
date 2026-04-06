@@ -31,12 +31,15 @@ export async function generateMatchesForTournament(tournamentId: string) {
     // Création des matchs en base avec répartition sur les terrains
     const createMatches = matchesData.map((m, index) => {
       const fieldIndex = (index % numFields) + 1;
+      const terrainLabel = `Terrain ${fieldIndex}`;
       return prisma.match.create({
         data: {
           tournamentId,
           teamAId: m.teamAId,
           teamBId: m.teamBId,
-          fieldName: `Terrain ${fieldIndex}`,
+          fieldName: terrainLabel,
+          terrain: terrainLabel, // On remplit les deux
+          manche: 1,
           status: MatchStatus.PENDING,
           statsTeamA: { homeRun: 0, balleGobee: 0 },
           statsTeamB: { homeRun: 0, balleGobee: 0 },
@@ -49,6 +52,33 @@ export async function generateMatchesForTournament(tournamentId: string) {
   } catch (error) {
     console.error("Error generating matches:", error);
     throw new Error("Erreur lors de la génération des matchs");
+  }
+}
+
+interface UpdateMatchData {
+  matchId: string;
+  fieldName?: string;
+  terrain?: string;
+  manche?: number;
+}
+
+export async function updateMatch(data: UpdateMatchData) {
+  try {
+    const updatedMatch = await prisma.match.update({
+      where: { id: data.matchId },
+      data: {
+        fieldName: data.fieldName,
+        terrain: data.terrain,
+        manche: data.manche,
+      },
+      include: { teamA: true, teamB: true }
+    });
+
+    eventEmitter.emit('matchUpdated', updatedMatch);
+    return updatedMatch;
+  } catch (error) {
+    console.error("Error updating match:", error);
+    throw new Error("Erreur lors de la mise à jour du match");
   }
 }
 

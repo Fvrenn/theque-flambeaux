@@ -159,7 +159,7 @@ export function RefereeRemoteControl({ match }: RemoteProps) {
   );
 
   return (
-    <div className="flex flex-col h-[calc(100vh-60px)] bg-slate-100 overflow-hidden">
+    <div className="flex flex-col min-h-screen bg-slate-100">
       {isFinished && (
         <div className="bg-red-600 text-white text-center py-2 text-xs font-black uppercase tracking-widest animate-pulse shrink-0">
           Match Terminé - Score Figé
@@ -167,12 +167,12 @@ export function RefereeRemoteControl({ match }: RemoteProps) {
       )}
 
       {isPending && (
-        <div className="absolute inset-0 bg-white/20 backdrop-blur-[1px] z-50 flex items-center justify-center pointer-events-none">
+        <div className="fixed inset-0 bg-white/20 backdrop-blur-[1px] z-50 flex items-center justify-center pointer-events-none">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
         </div>
       )}
 
-      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 overflow-y-auto">
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-2">
         <div className="border-b md:border-b-0 md:border-r border-slate-200">
           <TeamControl team={match.teamA} score={match.scoreTeamA} stats={statsA} teamKey="A" />
         </div>
@@ -181,7 +181,7 @@ export function RefereeRemoteControl({ match }: RemoteProps) {
         </div>
       </div>
 
-      <div className="p-4 bg-white border-t border-slate-200 shrink-0">
+      <div className="p-6 bg-white border-t border-slate-200 mt-auto sticky bottom-0">
         {!isFinished ? (
           <AlertDialog>
             <AlertDialogTrigger asChild>

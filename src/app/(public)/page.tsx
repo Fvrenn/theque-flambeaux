@@ -1,8 +1,18 @@
 import { prisma } from "@/lib/prisma";
 import { LiveMatches } from "@/components/features/public/LiveMatches";
 import { calculateMatchTournamentPoints } from "@/lib/ranking";
+import { getSettings } from "@/actions/settings.actions";
+import { ComingSoon } from "@/components/features/public/ComingSoon";
+
 export const dynamic = "force-dynamic";
+
 export default async function PublicHomePage() {
+  const settings = await getSettings();
+
+  if (settings.isMaintenanceMode) {
+    return <ComingSoon tournamentDate={settings.tournamentDate} />;
+  }
+
   const liveMatches = await prisma.match.findMany({
     where: { status: "IN_PROGRESS" },
     include: { teamA: true, teamB: true },

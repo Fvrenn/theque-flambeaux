@@ -6,6 +6,13 @@ datasource db {
   provider = "postgresql"
 }
 
+model Setting {
+  id                String   @id @default("current")
+  isMaintenanceMode Boolean  @default(false)
+  tournamentDate    String?
+  updatedAt         DateTime @updatedAt
+}
+
 model Tournament {
   id              String        @id @default(cuid())
   name            String
@@ -43,6 +50,8 @@ model Match {
   teamBId         String
   teamB           Team          @relation("TeamB", fields: [teamBId], references: [id])
   fieldName       String
+  terrain         String?
+  manche          Int           @default(1)
   startTime       DateTime?
   status          MatchStatus   @default(PENDING)
   scoreTeamA      Int           @default(0)
