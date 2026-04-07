@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { calculateRanking } from "@/lib/ranking";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Trophy, Target } from "lucide-react";
+import Link from "next/link";
 export const dynamic = "force-dynamic";
 export default async function RankingPage() {
   const teams = await prisma.team.findMany();
@@ -44,7 +45,9 @@ export default async function RankingPage() {
               <Trophy className="h-5 w-5 text-primary" />
             </div>
             <p className="text-[10px] font-black text-slate-400 uppercase">Top Home Runs</p>
-            <p className="text-sm font-black truncate">{topHomeRuns?.name || "-"}</p>
+            <Link href={`/equipes/${topHomeRuns?.id}`} className="block group/link active:scale-95 transition-all">
+              <p className="text-sm font-black truncate group-link-hover:text-primary">{topHomeRuns?.name || "-"}</p>
+            </Link>
             <p className="text-xl font-black text-primary">{topHomeRuns?.homeRuns || 0}</p>
           </div>
 
@@ -53,7 +56,9 @@ export default async function RankingPage() {
               <Target className="h-5 w-5 text-slate-800" />
             </div>
             <p className="text-[10px] font-black text-slate-400 uppercase">Top Balles Gobées</p>
-            <p className="text-sm font-black truncate">{topBallesGobees?.name || "-"}</p>
+            <Link href={`/equipes/${topBallesGobees?.id}`} className="block group/link active:scale-95 transition-all">
+              <p className="text-sm font-black truncate group-link-hover:text-primary">{topBallesGobees?.name || "-"}</p>
+            </Link>
             <p className="text-xl font-black text-slate-800">{topBallesGobees?.ballesGobees || 0}</p>
           </div>
         </div>
@@ -85,10 +90,10 @@ export default async function RankingPage() {
                     {index === 0 ? "🏆" : index + 1}
                   </TableCell>
                   <TableCell className="font-bold px-0.5">
-                    <div className="flex items-center gap-1 min-w-0">
-                      <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: team.color }} />
-                      <span className="truncate max-w-[50px] text-[10px]">{team.name}</span>
-                    </div>
+                    <Link href={`/equipes/${team.id}`} className="flex items-center gap-1 min-w-0 group active:scale-95 transition-all">
+                      <div className="w-1.5 h-1.5 rounded-full shrink-0 group-hover:scale-125 transition-transform" style={{ backgroundColor: team.color }} />
+                      <span className="truncate max-w-[50px] text-[10px] group-hover:text-primary">{team.name}</span>
+                    </Link>
                   </TableCell>
                   <TableCell className="text-center font-black text-primary tabular-nums px-0.5 text-xs">
                     {team.points}

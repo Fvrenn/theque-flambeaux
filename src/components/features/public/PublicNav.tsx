@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Radio, Trophy, Calendar, MessageCircle } from "lucide-react";
+import { Radio, Trophy, Calendar, MessageCircle, Users } from "lucide-react";
 
 export function PublicNav() {
   const pathname = usePathname();
 
   const navItems = [
     { label: "Direct", href: "/", icon: Radio },
+    { label: "Équipes", href: "/equipes", icon: Users },
     { label: "Classement", href: "/ranking", icon: Trophy },
     { label: "Planning", href: "/schedule", icon: Calendar },
     { label: "Live", href: "/live", icon: MessageCircle },

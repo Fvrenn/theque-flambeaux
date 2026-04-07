@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Match, Team } from "@prisma/client";
+import Link from "next/link";
 
 interface MatchWithTeams extends Match {
   teamA: Team;
@@ -66,29 +67,29 @@ export function LiveMatches({ initialMatches }: { initialMatches: MatchWithTeams
           </div>
           <CardContent className="p-6">
             <div className="flex justify-between items-center gap-4">
-              <div className="flex-1 text-center space-y-2">
+              <Link href={`/equipes/${match.teamA.id}`} className="flex-1 text-center space-y-2 group active:scale-95 transition-all">
                 <div 
-                  className="w-12 h-12 rounded-full mx-auto mb-2 border-4 border-slate-50 shadow-sm"
+                  className="w-12 h-12 rounded-full mx-auto mb-2 border-4 border-slate-50 shadow-sm transition-transform group-hover:scale-105"
                   style={{ backgroundColor: match.teamA.color }}
                 />
-                <p className="text-xs font-black uppercase leading-tight line-clamp-1">{match.teamA.name}</p>
+                <p className="text-xs font-black uppercase leading-tight line-clamp-1 group-hover:text-primary">{match.teamA.name}</p>
                 <p className={`text-4xl font-black transition-all ${updatedMatchId === match.id ? "text-primary scale-110" : ""}`}>
                   {match.scoreTeamA}
                 </p>
-              </div>
+              </Link>
               
               <div className="text-xl font-black text-slate-200">-</div>
 
-              <div className="flex-1 text-center space-y-2">
+              <Link href={`/equipes/${match.teamB.id}`} className="flex-1 text-center space-y-2 group active:scale-95 transition-all">
                 <div 
-                  className="w-12 h-12 rounded-full mx-auto mb-2 border-4 border-slate-50 shadow-sm"
+                  className="w-12 h-12 rounded-full mx-auto mb-2 border-4 border-slate-50 shadow-sm transition-transform group-hover:scale-105"
                   style={{ backgroundColor: match.teamB.color }}
                 />
-                <p className="text-xs font-black uppercase leading-tight line-clamp-1">{match.teamB.name}</p>
+                <p className="text-xs font-black uppercase leading-tight line-clamp-1 group-hover:text-primary">{match.teamB.name}</p>
                 <p className={`text-4xl font-black transition-all ${updatedMatchId === match.id ? "text-primary scale-110" : ""}`}>
                   {match.scoreTeamB}
                 </p>
-              </div>
+              </Link>
             </div>
           </CardContent>
         </Card>

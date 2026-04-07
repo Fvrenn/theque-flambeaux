@@ -3,6 +3,7 @@ import { LiveMatches } from "@/components/features/public/LiveMatches";
 import { calculateMatchTournamentPoints } from "@/lib/ranking";
 import { getSettings } from "@/actions/settings.actions";
 import { ComingSoon } from "@/components/features/public/ComingSoon";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -52,14 +53,14 @@ export default async function PublicHomePage() {
               return (
                 <div key={match.id} className="bg-white rounded-[2rem] p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)] border-2 border-slate-50 relative group kawaii-bounce cursor-default">
                   <div className="flex justify-between items-center gap-4">
-                    <div className="flex-1 text-center">
+                    <Link href={`/equipes/${match.teamA.id}`} className="flex-1 text-center group/team active:scale-95 transition-all">
                       <div
-                        className="w-10 h-10 rounded-2xl mx-auto mb-3 border-4 border-white shadow-sm rotate-[-3deg] transition-transform group-hover:rotate-0"
+                        className="w-10 h-10 rounded-2xl mx-auto mb-3 border-4 border-white shadow-sm rotate-[-3deg] transition-transform group-team-hover:rotate-0"
                         style={{ backgroundColor: match.teamA.color }}
                       />
-                      <p className="text-[10px] font-black uppercase text-slate-400 truncate mb-1">{match.teamA.name}</p>
+                      <p className="text-[10px] font-black uppercase text-slate-400 truncate mb-1 group-team-hover:text-primary">{match.teamA.name}</p>
                       <p className="text-xl font-black text-slate-800">{pointsA} pts</p>
-                    </div>
+                    </Link>
 
                     <div className="flex flex-col items-center">
                       <div className="bg-kawaii-cream px-3 py-1 rounded-full border border-kawaii-pink/20 mb-2">
@@ -68,14 +69,14 @@ export default async function PublicHomePage() {
                       <span className="text-[8px] font-black text-slate-200 uppercase">Score Match</span>
                     </div>
 
-                    <div className="flex-1 text-center">
+                    <Link href={`/equipes/${match.teamB.id}`} className="flex-1 text-center group/team active:scale-95 transition-all">
                       <div
-                        className="w-10 h-10 rounded-2xl mx-auto mb-3 border-4 border-white shadow-sm rotate-[3deg] transition-transform group-hover:rotate-0"
+                        className="w-10 h-10 rounded-2xl mx-auto mb-3 border-4 border-white shadow-sm rotate-[3deg] transition-transform group-team-hover:rotate-0"
                         style={{ backgroundColor: match.teamB.color }}
                       />
-                      <p className="text-[10px] font-black uppercase text-slate-400 truncate mb-1">{match.teamB.name}</p>
+                      <p className="text-[10px] font-black uppercase text-slate-400 truncate mb-1 group-team-hover:text-primary">{match.teamB.name}</p>
                       <p className="text-xl font-black text-slate-800">{pointsB} pts</p>
-                    </div>
+                    </Link>
                   </div>
                 </div>
               );

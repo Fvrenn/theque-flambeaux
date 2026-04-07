@@ -6,7 +6,10 @@ export const dynamic = "force-dynamic";
 export default async function SchedulePage() {
   const matches = await prisma.match.findMany({
     include: { teamA: true, teamB: true },
-    orderBy: { createdAt: "asc" },
+    orderBy: [
+      { manche: "asc" },
+      { createdAt: "asc" },
+    ],
   });
 
   return (
