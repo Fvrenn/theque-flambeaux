@@ -78,13 +78,17 @@ export function calculateRanking(teams: Team[], matches: Match[]): TeamRanking[]
     });
   });
 
-  const finishedMatches = matches.filter((m) => m.status === "FINISHED");
+  const activeMatches = matches.filter((m) => m.status === "FINISHED" || m.status === "IN_PROGRESS");
 
-  finishedMatches.forEach((match) => {
+  activeMatches.forEach((match) => {
     const teamA = rankingMap.get(match.teamAId);
     const teamB = rankingMap.get(match.teamBId);
 
     if (teamA && teamB) {
+      // On ne compte "played" que pour les matchs finis ? 
+      // Non, le user a dit "prendre en compte les points des matchs En cours (IN_PROGRESS)"
+      // Donc on les compte comme joués ? Généralement non, mais ici on veut le classement en temps réel.
+      // Mettons played+1 même si en cours pour que les stats soient cohérentes.
       teamA.played += 1;
       teamB.played += 1;
       teamA.goalsFor += match.scoreTeamA;
@@ -92,13 +96,11 @@ export function calculateRanking(teams: Team[], matches: Match[]): TeamRanking[]
       teamB.goalsFor += match.scoreTeamB;
       teamB.goalsAgainst += match.scoreTeamA;
 
-      // Stats individuelles
-      const statsA = (match.statsTeamA as any) || { homeRun: 0, balleGobee: 0 };
-      const statsB = (match.statsTeamB as any) || { homeRun: 0, balleGobee: 0 };
-      teamA.homeRuns += statsA.homeRun || 0;
-      teamA.ballesGobees += statsA.balleGobee || 0;
-      teamB.homeRuns += statsB.homeRun || 0;
-      teamB.ballesGobees += statsB.balleGobee || 0;
+      // Stats individuelles utilisant les nouveaux champs
+      teamA.homeRuns += match.homeRunsTeamA || 0;
+      teamA.ballesGobees += match.ballesGobeesTeamA || 0;
+      teamB.homeRuns += match.homeRunsTeamB || 0;
+      teamB.ballesGobees += match.ballesGobeesTeamB || 0;
 
       // Calcul des points de tournoi
       const { pointsA, pointsB, boA, boB, bdA, bdB } = calculateMatchTournamentPoints(match);

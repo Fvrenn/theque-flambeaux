@@ -56,43 +56,64 @@ export function LiveMatches({ initialMatches }: { initialMatches: MatchWithTeams
   return (
     <div className="space-y-4">
       {matches.map((match) => (
-        <Card 
-          key={match.id} 
-          className={`overflow-hidden border-none shadow-lg ring-1 ring-slate-200 transition-all duration-500 ${
-            updatedMatchId === match.id ? "ring-primary ring-offset-2 scale-[1.02]" : ""
-          }`}
-        >
-          <div className="bg-slate-900 text-white p-2 text-center text-[10px] font-bold uppercase tracking-widest">
-            {match.fieldName}
-          </div>
-          <CardContent className="p-6">
-            <div className="flex justify-between items-center gap-4">
-              <Link href={`/equipes/${match.teamA.id}`} className="flex-1 text-center space-y-2 group active:scale-95 transition-all">
-                <div 
-                  className="w-12 h-12 rounded-full mx-auto mb-2 border-4 border-slate-50 shadow-sm transition-transform group-hover:scale-105"
-                  style={{ backgroundColor: match.teamA.color }}
-                />
-                <p className="text-xs font-black uppercase leading-tight line-clamp-1 group-hover:text-primary">{match.teamA.name}</p>
-                <p className={`text-4xl font-black transition-all ${updatedMatchId === match.id ? "text-primary scale-110" : ""}`}>
-                  {match.scoreTeamA}
-                </p>
-              </Link>
-              
-              <div className="text-xl font-black text-slate-200">-</div>
-
-              <Link href={`/equipes/${match.teamB.id}`} className="flex-1 text-center space-y-2 group active:scale-95 transition-all">
-                <div 
-                  className="w-12 h-12 rounded-full mx-auto mb-2 border-4 border-slate-50 shadow-sm transition-transform group-hover:scale-105"
-                  style={{ backgroundColor: match.teamB.color }}
-                />
-                <p className="text-xs font-black uppercase leading-tight line-clamp-1 group-hover:text-primary">{match.teamB.name}</p>
-                <p className={`text-4xl font-black transition-all ${updatedMatchId === match.id ? "text-primary scale-110" : ""}`}>
-                  {match.scoreTeamB}
-                </p>
-              </Link>
+        <Link key={match.id} href={`/live/${match.id}`}>
+          <Card 
+            className={`overflow-hidden border-none shadow-lg ring-1 ring-slate-200 transition-all duration-500 cursor-pointer hover:shadow-xl ${
+              updatedMatchId === match.id ? "ring-primary ring-offset-2 scale-[1.02]" : ""
+            }`}
+          >
+            <div className="bg-slate-900 text-white p-2 text-center text-[10px] font-bold uppercase tracking-widest">
+              {match.fieldName}
             </div>
-          </CardContent>
-        </Card>
+            <CardContent className="p-6">
+              <div className="flex justify-between items-center gap-4">
+                <div className="flex-1 text-center space-y-2 group">
+                  <div 
+                    className="w-12 h-12 rounded-full mx-auto mb-2 border-4 border-slate-50 shadow-sm transition-transform group-hover:scale-105"
+                    style={{ backgroundColor: match.teamA.color }}
+                  />
+                  <p className="text-xs font-black uppercase leading-tight line-clamp-1 group-hover:text-primary">{match.teamA.name}</p>
+                  <p className={`text-4xl font-black transition-all ${updatedMatchId === match.id ? "text-primary scale-110" : ""}`}>
+                    {match.scoreTeamA}
+                  </p>
+                  <div className="flex justify-center gap-3 mt-2">
+                    <div className="flex flex-col items-center">
+                      <span className="text-[8px] font-bold text-slate-400 uppercase">HR</span>
+                      <span className="text-xs font-black text-slate-600">{match.homeRunsTeamA}</span>
+                    </div>
+                    <div className="flex flex-col items-center">
+                      <span className="text-[8px] font-bold text-slate-400 uppercase">Gob.</span>
+                      <span className="text-xs font-black text-slate-600">{match.ballesGobeesTeamA}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="text-xl font-black text-slate-200">-</div>
+
+                <div className="flex-1 text-center space-y-2 group">
+                  <div 
+                    className="w-12 h-12 rounded-full mx-auto mb-2 border-4 border-slate-50 shadow-sm transition-transform group-hover:scale-105"
+                    style={{ backgroundColor: match.teamB.color }}
+                  />
+                  <p className="text-xs font-black uppercase leading-tight line-clamp-1 group-hover:text-primary">{match.teamB.name}</p>
+                  <p className={`text-4xl font-black transition-all ${updatedMatchId === match.id ? "text-primary scale-110" : ""}`}>
+                    {match.scoreTeamB}
+                  </p>
+                  <div className="flex justify-center gap-3 mt-2">
+                    <div className="flex flex-col items-center">
+                      <span className="text-[8px] font-bold text-slate-400 uppercase">HR</span>
+                      <span className="text-xs font-black text-slate-600">{match.homeRunsTeamB}</span>
+                    </div>
+                    <div className="flex flex-col items-center">
+                      <span className="text-[8px] font-bold text-slate-400 uppercase">Gob.</span>
+                      <span className="text-xs font-black text-slate-600">{match.ballesGobeesTeamB}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
       ))}
     </div>
   );

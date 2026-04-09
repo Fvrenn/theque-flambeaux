@@ -56,6 +56,10 @@ model Match {
   status          MatchStatus   @default(PENDING)
   scoreTeamA      Int           @default(0)
   scoreTeamB      Int           @default(0)
+  homeRunsTeamA   Int           @default(0)
+  homeRunsTeamB   Int           @default(0)
+  ballesGobeesTeamA Int           @default(0)
+  ballesGobeesTeamB Int           @default(0)
   statsTeamA      Json
   statsTeamB      Json
   tournamentId    String

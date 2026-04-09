@@ -61,8 +61,14 @@ export async function generateMatchesForTournament(tournamentId: string) {
           terrain: terrainLabel,
           manche: roundNumber,
           status: MatchStatus.PENDING,
-          statsTeamA: { homeRun: 0, balleGobee: 0 },
-          statsTeamB: { homeRun: 0, balleGobee: 0 },
+          scoreTeamA: 0,
+          scoreTeamB: 0,
+          homeRunsTeamA: 0,
+          homeRunsTeamB: 0,
+          ballesGobeesTeamA: 0,
+          ballesGobeesTeamB: 0,
+          statsTeamA: {},
+          statsTeamB: {},
         },
       });
     });
@@ -136,7 +142,7 @@ export async function updateMatchScore(data: UpdateMatchScoreData) {
 interface AddMatchStatData {
   matchId: string;
   team: 'A' | 'B';
-  statType: 'homeRun' | 'balleGobee';
+  statType: 'homeRun' | 'ballesGobee';
   increment?: number;
 }
 
@@ -148,25 +154,23 @@ export async function addMatchStat(data: AddMatchStatData) {
 
     if (!match) throw new Error("Match non trouvé");
 
-    const statKey = data.team === 'A' ? 'statsTeamA' : 'statsTeamB';
-    const currentStats = (match[statKey] as Record<string, number>) || { homeRun: 0, balleGobee: 0 };
-    
-    const newStats = {
-      ...currentStats,
-      [data.statType]: Math.max(0, (currentStats[data.statType] || 0) + (data.increment ?? 1)),
-    };
+    const statField = data.statType === 'homeRun' 
+      ? (data.team === 'A' ? 'homeRunsTeamA' : 'homeRunsTeamB')
+      : (data.team === 'A' ? 'ballesGobeesTeamA' : 'ballesGobeesTeamB');
 
     const updatedMatch = await prisma.match.update({
       where: { id: data.matchId },
-      data: { [statKey]: newStats },
+      data: { 
+        [statField]: Math.max(0, (match[statField as keyof typeof match] as number || 0) + (data.increment ?? 1))
+      },
       include: { teamA: true, teamB: true }
     });
 
     eventEmitter.emit('matchUpdated', updatedMatch);
     return updatedMatch;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error adding match stat:", error);
-    throw new Error("Erreur lors de l'ajout de la statistique");
+    throw new Error(`Erreur lors de l'ajout de la statistique : ${error.message || 'Erreur inconnue'}`);
   }
 }
 
@@ -194,8 +198,12 @@ export async function resetMatch(matchId: string) {
         status: MatchStatus.PENDING,
         scoreTeamA: 0,
         scoreTeamB: 0,
-        statsTeamA: { homeRun: 0, balleGobee: 0 },
-        statsTeamB: { homeRun: 0, balleGobee: 0 },
+        homeRunsTeamA: 0,
+        homeRunsTeamB: 0,
+        ballesGobeesTeamA: 0,
+        ballesGobeesTeamB: 0,
+        statsTeamA: {},
+        statsTeamB: {},
       },
       include: { teamA: true, teamB: true }
     });

@@ -2,12 +2,19 @@ import { prisma } from "@/lib/prisma";
 import { calculateRanking } from "@/lib/ranking";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Trophy, Target } from "lucide-react";
+import { SSERefresh } from "@/components/shared/SSERefresh";
 import Link from "next/link";
+
 export const dynamic = "force-dynamic";
+
 export default async function RankingPage() {
   const teams = await prisma.team.findMany();
   const matches = await prisma.match.findMany({
-    where: { status: "FINISHED" },
+    where: { 
+      status: { 
+        in: ["FINISHED", "IN_PROGRESS"] 
+      } 
+    },
   });
 
   const ranking = calculateRanking(teams, matches);
@@ -21,6 +28,7 @@ export default async function RankingPage() {
 
   return (
     <div className="space-y-8 py-2">
+      <SSERefresh />
       {/* 1. Statistiques Globales du Tournoi */}
       <section className="px-2">
         <h2 className="text-sm font-black uppercase tracking-widest text-slate-900 mb-4 px-1">Stats Globales</h2>

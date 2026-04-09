@@ -27,8 +27,10 @@ interface RemoteProps {
     teamB: { id: string; name: string; color: string };
     scoreTeamA: number;
     scoreTeamB: number;
-    statsTeamA: any;
-    statsTeamB: any;
+    homeRunsTeamA: number;
+    homeRunsTeamB: number;
+    ballesGobeesTeamA: number;
+    ballesGobeesTeamB: number;
   };
 }
 
@@ -36,9 +38,6 @@ export function RefereeRemoteControl({ match }: RemoteProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const isFinished = match.status === MatchStatus.FINISHED;
-
-  const statsA = (match.statsTeamA as Record<string, number>) || { homeRun: 0, balleGobee: 0 };
-  const statsB = (match.statsTeamB as Record<string, number>) || { homeRun: 0, balleGobee: 0 };
 
   function handleAction(action: () => Promise<any>) {
     startTransition(async () => {
@@ -58,12 +57,14 @@ export function RefereeRemoteControl({ match }: RemoteProps) {
   const TeamControl = ({
     team,
     score,
-    stats,
+    homeRuns,
+    ballesGobees,
     teamKey
   }: {
     team: { name: string, color: string },
     score: number,
-    stats: any,
+    homeRuns: number,
+    ballesGobees: number,
     teamKey: 'A' | 'B'
   }) => (
     <div className="flex flex-col gap-4 p-4 h-full bg-white">
@@ -96,7 +97,7 @@ export function RefereeRemoteControl({ match }: RemoteProps) {
         <div className="space-y-2">
           <div className="flex justify-between items-center px-1">
             <span className="text-[10px] font-bold uppercase text-slate-400">Home Runs</span>
-            <span className="text-lg font-black">{stats.homeRun || 0}</span>
+            <span className="text-lg font-black">{homeRuns}</span>
           </div>
           <div className="flex gap-2">
             <Button
@@ -104,9 +105,9 @@ export function RefereeRemoteControl({ match }: RemoteProps) {
               className="flex-1 h-20 text-xs font-bold border-2 flex flex-col gap-1"
               style={{ borderColor: team.color, color: team.color }}
               disabled={isPending || isFinished}
-              onClick={() => handleAction(() => {
-                updateMatchScore({ matchId: match.id, team: teamKey, pointsToAdd: 2 });
-                return addMatchStat({ matchId: match.id, team: teamKey, statType: 'homeRun', increment: 1 });
+              onClick={() => handleAction(async () => {
+                await updateMatchScore({ matchId: match.id, team: teamKey, pointsToAdd: 2 });
+                return await addMatchStat({ matchId: match.id, team: teamKey, statType: 'homeRun', increment: 1 });
               })}
             >
               <Trophy className="h-5 w-5" />
@@ -117,10 +118,10 @@ export function RefereeRemoteControl({ match }: RemoteProps) {
               variant="ghost"
               size="icon"
               className="h-20 w-12 bg-slate-50 border border-slate-100"
-              disabled={isPending || isFinished || !stats.homeRun}
-              onClick={() => handleAction(() => {
-                updateMatchScore({ matchId: match.id, team: teamKey, pointsToAdd: -2 });
-                return addMatchStat({ matchId: match.id, team: teamKey, statType: 'homeRun', increment: -1 });
+              disabled={isPending || isFinished || !homeRuns}
+              onClick={() => handleAction(async () => {
+                await updateMatchScore({ matchId: match.id, team: teamKey, pointsToAdd: -2 });
+                return await addMatchStat({ matchId: match.id, team: teamKey, statType: 'homeRun', increment: -1 });
               })}
             >
               <Minus className="h-4 w-4" />
@@ -132,13 +133,13 @@ export function RefereeRemoteControl({ match }: RemoteProps) {
         <div className="space-y-2">
           <div className="flex justify-between items-center px-1">
             <span className="text-[10px] font-bold uppercase text-slate-400">Balles Gobées</span>
-            <span className="text-lg font-black">{stats.balleGobee || 0}</span>
+            <span className="text-lg font-black">{ballesGobees}</span>
           </div>
           <div className="flex gap-2">
             <Button
               className="flex-1 h-20 text-xs font-bold bg-slate-800 hover:bg-slate-900 flex flex-col gap-1"
               disabled={isPending || isFinished}
-              onClick={() => handleAction(() => addMatchStat({ matchId: match.id, team: teamKey, statType: 'balleGobee', increment: 1 }))}
+              onClick={() => handleAction(() => addMatchStat({ matchId: match.id, team: teamKey, statType: 'ballesGobee', increment: 1 }))}
             >
               <Target className="h-5 w-5 text-princeton-orange-400" />
               <span>BALLE GOBÉE</span>
@@ -147,8 +148,8 @@ export function RefereeRemoteControl({ match }: RemoteProps) {
               variant="ghost"
               size="icon"
               className="h-20 w-12 bg-slate-50 border border-slate-100"
-              disabled={isPending || isFinished || !stats.balleGobee}
-              onClick={() => handleAction(() => addMatchStat({ matchId: match.id, team: teamKey, statType: 'balleGobee', increment: -1 }))}
+              disabled={isPending || isFinished || !ballesGobees}
+              onClick={() => handleAction(() => addMatchStat({ matchId: match.id, team: teamKey, statType: 'ballesGobee', increment: -1 }))}
             >
               <Minus className="h-4 w-4" />
             </Button>
@@ -174,10 +175,22 @@ export function RefereeRemoteControl({ match }: RemoteProps) {
 
       <div className="flex-1 grid grid-cols-1 md:grid-cols-2">
         <div className="border-b md:border-b-0 md:border-r border-slate-200">
-          <TeamControl team={match.teamA} score={match.scoreTeamA} stats={statsA} teamKey="A" />
+          <TeamControl 
+            team={match.teamA} 
+            score={match.scoreTeamA} 
+            homeRuns={match.homeRunsTeamA} 
+            ballesGobees={match.ballesGobeesTeamA} 
+            teamKey="A" 
+          />
         </div>
         <div>
-          <TeamControl team={match.teamB} score={match.scoreTeamB} stats={statsB} teamKey="B" />
+          <TeamControl 
+            team={match.teamB} 
+            score={match.scoreTeamB} 
+            homeRuns={match.homeRunsTeamB} 
+            ballesGobees={match.ballesGobeesTeamB} 
+            teamKey="B" 
+          />
         </div>
       </div>
 
