@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { revalidatePath } from "next/cache";
 
 export async function createTournament(name: string, numberOfFields: number) {
   try {
@@ -11,6 +12,7 @@ export async function createTournament(name: string, numberOfFields: number) {
         date: new Date(),
       },
     });
+    revalidatePath("/admin");
     return tournament;
   } catch (error) {
     console.error("Error creating tournament:", error);
@@ -27,58 +29,30 @@ interface AddTeamData {
 
 export async function addTeamToTournament(data: AddTeamData) {
   try {
-    // Parser la liste des joueurs : séparer par virgule ou retour à la ligne, nettoyer les espaces
-    const formattedPlayers = data.playersList
+    // Parser la liste des joueurs
+    const playersNames = data.playersList
       ? data.playersList
           .split(/[,\n]/)
           .map((p) => p.trim())
           .filter((p) => p !== "")
-          .join(", ")
-      : "";
+      : [];
 
     const team = await prisma.team.create({
       data: {
         name: data.name,
         color: data.color,
         tournamentId: data.tournamentId,
-        playersList: formattedPlayers,
+        playersList: playersNames.join(", "), // On garde la string pour compatibilité si besoin
+        players: {
+          create: playersNames.map(name => ({ name }))
+        }
       },
     });
+    
+    revalidatePath(`/admin/${data.tournamentId}`);
     return team;
   } catch (error) {
     console.error("Error adding team to tournament:", error);
     throw new Error("Impossible d'ajouter l'équipe au tournoi");
-  }
-}
-
-interface UpdateTeamData {
-  teamId: string;
-  name: string;
-  color: string;
-  playersList?: string;
-}
-
-export async function updateTeam(data: UpdateTeamData) {
-  try {
-    const formattedPlayers = data.playersList
-      ? data.playersList
-          .split(/[,\n]/)
-          .map((p) => p.trim())
-          .filter((p) => p !== "")
-          .join(", ")
-      : "";
-
-    const team = await prisma.team.update({
-      where: { id: data.teamId },
-      data: {
-        name: data.name,
-        color: data.color,
-        playersList: formattedPlayers,
-      },
-    });
-    return team;
-  } catch (error) {
-    console.error("Error updating team:", error);
-    throw new Error("Impossible de mettre à jour l'équipe");
   }
 }

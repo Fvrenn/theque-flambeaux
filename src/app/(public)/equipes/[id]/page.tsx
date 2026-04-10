@@ -14,15 +14,18 @@ export default async function TeamDetailsPage({ params }: Props) {
 
   const team = await prisma.team.findUnique({
     where: { id },
+    include: {
+      players: {
+        orderBy: { name: 'asc' }
+      }
+    }
   });
 
   if (!team) {
     notFound();
   }
 
-  const players = team.playersList 
-    ? team.playersList.split(",").map(p => p.trim()).filter(p => p !== "")
-    : [];
+  const players = team.players;
 
   return (
     <div className="py-6 space-y-8">
@@ -63,11 +66,11 @@ export default async function TeamDetailsPage({ params }: Props) {
             <div className="grid grid-cols-1 gap-3">
               {players.map((player, index) => (
                 <div 
-                  key={index}
+                  key={player.id}
                   className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100 group transition-all hover:bg-white hover:shadow-md hover:border-primary/20"
                 >
-                  <span className="text-[10px] font-black text-slate-300 w-4">{index + 1}</span>
-                  <span className="font-bold text-slate-700">{player}</span>
+                  <span className="text-[10px] font-black text-slate-300 w-4 tracking-tighter">{index + 1}</span>
+                  <span className="font-bold text-slate-700">{player.name}</span>
                 </div>
               ))}
             </div>

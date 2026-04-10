@@ -8,6 +8,9 @@ export const dynamic = "force-dynamic";
 export default async function EquipesPage() {
   const teams = await prisma.team.findMany({
     orderBy: { name: "asc" },
+    include: {
+      players: true
+    }
   });
 
   return (
@@ -33,7 +36,7 @@ export default async function EquipesPage() {
                         {team.name}
                       </CardTitle>
                       <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">
-                        {team.playersList ? team.playersList.split(",").filter(p => p.trim() !== "").length : 0} Joueurs
+                        {team.players.length} Joueurs
                       </p>
                     </div>
                     <div className="bg-slate-50 p-3 rounded-2xl group-hover:bg-primary/10 transition-colors shrink-0">

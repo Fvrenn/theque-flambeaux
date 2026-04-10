@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
+import Link from "next/link";
+import { Pencil } from "lucide-react";
 import { AddTeamForm } from "@/components/features/admin/AddTeamForm";
 import { DangerZone } from "@/components/features/admin/DangerZone";
 import { EditMatchDialog } from "@/components/features/admin/EditMatchDialog";
@@ -8,6 +10,7 @@ import { MatchRescueActions } from "@/components/features/admin/MatchRescueActio
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   params: Promise<{ tournamentId: string }>;
@@ -61,17 +64,23 @@ export default async function TournamentDashboardPage({ params }: Props) {
               {tournament.teams.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
                   {tournament.teams.map((team) => (
-                    <Badge 
-                      key={team.id} 
-                      variant="outline" 
-                      className="px-3 py-1 flex gap-2 items-center text-sm font-medium"
-                    >
-                      <div 
-                        className="w-3 h-3 rounded-full" 
-                        style={{ backgroundColor: team.color }} 
-                      />
-                      {team.name}
-                    </Badge>
+                    <div key={team.id} className="flex items-center gap-1 group">
+                      <Badge 
+                        variant="outline" 
+                        className="px-3 py-1 flex gap-2 items-center text-sm font-medium"
+                      >
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: team.color }} 
+                        />
+                        {team.name}
+                      </Badge>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-primary" asChild>
+                        <Link href={`/admin/equipes/${team.id}/edit`}>
+                          <Pencil className="h-3 w-3" />
+                        </Link>
+                      </Button>
+                    </div>
                   ))}
                 </div>
               ) : (
