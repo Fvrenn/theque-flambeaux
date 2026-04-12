@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { StartMatchButton } from "@/components/features/referee/StartMatchButton";
 import { RefereeRemoteControl } from "@/components/features/referee/RefereeRemoteControl";
-import { RefereeTimer } from "@/components/features/referee/RefereeTimer";
 import { Button } from "@/components/ui/button";
 
 interface Props {
@@ -42,12 +41,6 @@ export default async function MatchRefereePage({ params }: Props) {
       </header>
 
       <main className="flex-1">
-        {match.status === "IN_PROGRESS" && (
-          <div className="p-4 bg-white border-b border-slate-100">
-            <RefereeTimer />
-          </div>
-        )}
-
         {match.status === "PENDING" && (
           <div className="p-6">
             <StartMatchButton matchId={matchId} />

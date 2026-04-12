@@ -1,11 +1,12 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { updateMatchScore, addMatchStat, updateMatchStatus } from "@/actions/match.actions";
 import { Button } from "@/components/ui/button";
 import { MatchStatus } from "@prisma/client";
-import { Undo2 } from "lucide-react";
+import { Undo2, Trophy, Target, RefreshCw, Minus } from "lucide-react";
+import { RefereeTimer } from "./RefereeTimer";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,7 +18,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Minus, Plus, Trophy, Target } from "lucide-react";
 
 interface RemoteProps {
   match: {
@@ -37,7 +37,24 @@ interface RemoteProps {
 export function RefereeRemoteControl({ match }: RemoteProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [attackingTeamId, setAttackingTeamId] = useState(match.teamA.id);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [timerResetCounter, setTimerResetCounter] = useState(0);
+
   const isFinished = match.status === MatchStatus.FINISHED;
+  const isTeamAAttacking = attackingTeamId === match.teamA.id;
+  
+  const attackingTeam = isTeamAAttacking ? match.teamA : match.teamB;
+  const defendingTeam = isTeamAAttacking ? match.teamB : match.teamA;
+  
+  const attackingTeamKey = isTeamAAttacking ? 'A' : 'B';
+  const defendingTeamKey = isTeamAAttacking ? 'B' : 'A';
+
+  const attackingScore = isTeamAAttacking ? match.scoreTeamA : match.scoreTeamB;
+  const defendingScore = isTeamAAttacking ? match.scoreTeamB : match.scoreTeamA;
+
+  const attackingHomeRuns = isTeamAAttacking ? match.homeRunsTeamA : match.homeRunsTeamB;
+  const defendingBallesGobees = isTeamAAttacking ? match.ballesGobeesTeamB : match.ballesGobeesTeamA;
 
   function handleAction(action: () => Promise<any>) {
     startTransition(async () => {
@@ -54,113 +71,26 @@ export function RefereeRemoteControl({ match }: RemoteProps) {
     handleAction(() => updateMatchStatus(match.id, MatchStatus.FINISHED));
   }
 
-  const TeamControl = ({
-    team,
-    score,
-    homeRuns,
-    ballesGobees,
-    teamKey
-  }: {
-    team: { name: string, color: string },
-    score: number,
-    homeRuns: number,
-    ballesGobees: number,
-    teamKey: 'A' | 'B'
-  }) => (
-    <div className="flex flex-col gap-4 p-4 h-full bg-white">
-      <div className="text-center mb-2">
-        <h3 className="font-black uppercase text-sm tracking-widest opacity-60 mb-1">{team.name}</h3>
-        <div className="flex items-center justify-center gap-4">
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-10 w-10 border-2"
-            disabled={isPending || isFinished || score === 0}
-            onClick={() => handleAction(() => updateMatchScore({ matchId: match.id, team: teamKey, pointsToAdd: -1 }))}
-          >
-            <Minus className="h-4 w-4" />
-          </Button>
-          <span className="text-6xl font-black tabular-nums">{score}</span>
-          <Button
-            className="h-10 w-10 shadow-md"
-            style={{ backgroundColor: team.color }}
-            disabled={isPending || isFinished}
-            onClick={() => handleAction(() => updateMatchScore({ matchId: match.id, team: teamKey, pointsToAdd: 1 }))}
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+  const toggleAttackingTeam = () => {
+    setAttackingTeamId(prev => prev === match.teamA.id ? match.teamB.id : match.teamA.id);
+    // 2. RESET DU CHRONO AU CHANGEMENT DE CAMP
+    setTimerResetCounter(prev => prev + 1);
+  };
 
-      <div className="space-y-4 flex-1">
-        {/* Home Runs */}
-        <div className="space-y-2">
-          <div className="flex justify-between items-center px-1">
-            <span className="text-[10px] font-bold uppercase text-slate-400">Home Runs</span>
-            <span className="text-lg font-black">{homeRuns}</span>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              className="flex-1 h-20 text-xs font-bold border-2 flex flex-col gap-1"
-              style={{ borderColor: team.color, color: team.color }}
-              disabled={isPending || isFinished}
-              onClick={() => handleAction(async () => {
-                await updateMatchScore({ matchId: match.id, team: teamKey, pointsToAdd: 2 });
-                return await addMatchStat({ matchId: match.id, team: teamKey, statType: 'homeRun', increment: 1 });
-              })}
-            >
-              <Trophy className="h-5 w-5" />
-              <span>HOME RUN</span>
-              <span className="text-[9px] opacity-70">+2 PTS</span>
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-20 w-12 bg-slate-50 border border-slate-100"
-              disabled={isPending || isFinished || !homeRuns}
-              onClick={() => handleAction(async () => {
-                await updateMatchScore({ matchId: match.id, team: teamKey, pointsToAdd: -2 });
-                return await addMatchStat({ matchId: match.id, team: teamKey, statType: 'homeRun', increment: -1 });
-              })}
-            >
-              <Minus className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-
-        {/* Balles Gobées */}
-        <div className="space-y-2">
-          <div className="flex justify-between items-center px-1">
-            <span className="text-[10px] font-bold uppercase text-slate-400">Balles Gobées</span>
-            <span className="text-lg font-black">{ballesGobees}</span>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              className="flex-1 h-20 text-xs font-bold bg-slate-800 hover:bg-slate-900 flex flex-col gap-1"
-              disabled={isPending || isFinished}
-              onClick={() => handleAction(() => addMatchStat({ matchId: match.id, team: teamKey, statType: 'ballesGobee', increment: 1 }))}
-            >
-              <Target className="h-5 w-5 text-princeton-orange-400" />
-              <span>BALLE GOBÉE</span>
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-20 w-12 bg-slate-50 border border-slate-100"
-              disabled={isPending || isFinished || !ballesGobees}
-              onClick={() => handleAction(() => addMatchStat({ matchId: match.id, team: teamKey, statType: 'ballesGobee', increment: -1 }))}
-            >
-              <Minus className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  const isButtonsDisabled = isPending || isFinished || !isTimerRunning;
 
   return (
-    <div className="flex flex-col min-h-screen bg-slate-100">
+    <div className="flex flex-col min-h-screen bg-slate-50 pb-20">
+      {/* 2. LE CHRONO FIXE ET LE VERROUILLAGE DES SCORES */}
+      <div className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-slate-200 p-4 shadow-sm">
+        <RefereeTimer isRunning={isTimerRunning} setIsRunning={setIsTimerRunning} resetTrigger={timerResetCounter} />
+        {!isTimerRunning && !isFinished && (
+          <p className="text-[10px] text-center font-bold text-princeton-orange-600 uppercase mt-2 animate-pulse">
+            Lancez le chrono pour déverrouiller les boutons
+          </p>
+        )}
+      </div>
+
       {isFinished && (
         <div className="bg-red-600 text-white text-center py-2 text-xs font-black uppercase tracking-widest animate-pulse shrink-0">
           Match Terminé - Score Figé
@@ -168,39 +98,132 @@ export function RefereeRemoteControl({ match }: RemoteProps) {
       )}
 
       {isPending && (
-        <div className="fixed inset-0 bg-white/20 backdrop-blur-[1px] z-50 flex items-center justify-center pointer-events-none">
+        <div className="fixed inset-0 bg-white/20 backdrop-blur-[1px] z-[60] flex items-center justify-center pointer-events-none">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
         </div>
       )}
 
-      <div className="flex-1 grid grid-cols-1 md:grid-cols-2">
-        <div className="border-b md:border-b-0 md:border-r border-slate-200">
-          <TeamControl 
-            team={match.teamA} 
-            score={match.scoreTeamA} 
-            homeRuns={match.homeRunsTeamA} 
-            ballesGobees={match.ballesGobeesTeamA} 
-            teamKey="A" 
-          />
+      {/* 1 & 3. GESTION DE L'ÉTAT "ATTAQUE / DÉFENSE" ET BOUTONS DE PHASE DE JEU */}
+      <div className="flex-1 p-4 flex flex-col gap-6">
+        <div className="text-center space-y-1">
+          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">En attaque</span>
+          <h2 className="text-3xl font-black uppercase tracking-tight" style={{ color: attackingTeam.color }}>
+            {attackingTeam.name}
+          </h2>
+          <div className="flex justify-center items-baseline gap-2">
+            <span className="text-5xl font-black tabular-nums">{attackingScore}</span>
+            <span className="text-slate-300 text-xl font-bold">vs</span>
+            <span className="text-2xl font-bold text-slate-400 tabular-nums">{defendingScore}</span>
+          </div>
         </div>
-        <div>
-          <TeamControl 
-            team={match.teamB} 
-            score={match.scoreTeamB} 
-            homeRuns={match.homeRunsTeamB} 
-            ballesGobees={match.ballesGobeesTeamB} 
-            teamKey="B" 
-          />
+
+        <div className="space-y-4">
+          {/* Action : Points Classiques */}
+          <div className="space-y-2">
+            <div className="flex justify-between items-center px-1">
+              <span className="text-[10px] font-bold uppercase text-slate-400">Points Tour Complet</span>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                className="flex-1 h-24 text-xl font-black flex flex-col gap-1 shadow-md transition-colors duration-200 active:opacity-70"
+                style={{ backgroundColor: attackingTeam.color }}
+                disabled={isButtonsDisabled}
+                onClick={() => handleAction(() => updateMatchScore({ matchId: match.id, team: attackingTeamKey, pointsToAdd: 1 }))}
+              >
+                <span className="text-4xl">+1</span>
+                <span className="text-[10px] uppercase tracking-wider">Point</span>
+              </Button>
+              <Button
+                variant="outline"
+                className="w-16 h-24 border-2 border-slate-200 flex items-center justify-center transition-colors duration-200 active:opacity-70"
+                disabled={isButtonsDisabled || attackingScore === 0}
+                onClick={() => handleAction(() => updateMatchScore({ matchId: match.id, team: attackingTeamKey, pointsToAdd: -1 }))}
+              >
+                <Minus className="h-6 w-6 text-slate-400" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Action : Home Run */}
+          <div className="space-y-2">
+            <div className="flex justify-between items-center px-1">
+              <span className="text-[10px] font-bold uppercase text-slate-400">Home Runs (Total: {attackingHomeRuns})</span>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="flex-1 h-24 text-xl font-black flex flex-col gap-1 shadow-sm border-2 transition-colors duration-200 active:opacity-70"
+                style={{ borderColor: attackingTeam.color, color: attackingTeam.color }}
+                disabled={isButtonsDisabled}
+                onClick={() => handleAction(async () => {
+                  await updateMatchScore({ matchId: match.id, team: attackingTeamKey, pointsToAdd: 2 });
+                  return await addMatchStat({ matchId: match.id, team: attackingTeamKey, statType: 'homeRun', increment: 1 });
+                })}
+              >
+                <Trophy className="h-6 w-6" />
+                <span className="text-[10px] uppercase tracking-wider text-center">HOME RUN (+2 PTS)</span>
+              </Button>
+              <Button
+                variant="outline"
+                className="w-16 h-24 border-2 border-slate-200 flex items-center justify-center transition-colors duration-200 active:opacity-70"
+                disabled={isButtonsDisabled || attackingHomeRuns === 0}
+                onClick={() => handleAction(async () => {
+                  await updateMatchScore({ matchId: match.id, team: attackingTeamKey, pointsToAdd: -2 });
+                  return await addMatchStat({ matchId: match.id, team: attackingTeamKey, statType: 'homeRun', increment: -1 });
+                })}
+              >
+                <Minus className="h-6 w-6 text-slate-400" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Action : Balle Gobée (Défense) */}
+          <div className="space-y-2">
+            <div className="flex justify-between items-center px-1">
+              <span className="text-[10px] font-bold uppercase text-slate-400">Balles Gobées {defendingTeam.name} (Total: {defendingBallesGobees})</span>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="secondary"
+                className="flex-1 h-24 text-lg font-black bg-slate-800 hover:bg-slate-900 text-white flex flex-col gap-1 shadow-md transition-colors duration-200 active:opacity-70"
+                disabled={isButtonsDisabled}
+                onClick={() => handleAction(() => addMatchStat({ matchId: match.id, team: defendingTeamKey, statType: 'ballesGobee', increment: 1 }))}
+              >
+                <Target className="h-5 w-5 text-princeton-orange-400" />
+                <span className="text-[10px] uppercase tracking-wide text-center">+1 BALLE GOBÉE</span>
+              </Button>
+              <Button
+                variant="outline"
+                className="w-16 h-24 border-2 border-slate-200 flex items-center justify-center transition-colors duration-200 active:opacity-70"
+                disabled={isButtonsDisabled || defendingBallesGobees === 0}
+                onClick={() => handleAction(() => addMatchStat({ matchId: match.id, team: defendingTeamKey, statType: 'ballesGobee', increment: -1 }))}
+              >
+                <Minus className="h-6 w-6 text-slate-400" />
+              </Button>
+            </div>
+          </div>
         </div>
+
+        {/* 4. CHANGEMENT DE CAMP */}
+        <Button
+          variant="outline"
+          className="mt-4 h-16 border-2 border-slate-200 text-slate-600 font-black uppercase tracking-widest flex items-center justify-center gap-3 bg-white hover:bg-slate-50 transition-colors duration-200 active:opacity-70"
+          onClick={toggleAttackingTeam}
+          disabled={isPending || isFinished}
+        >
+          <RefreshCw className="h-5 w-5" />
+          Changement de camp
+        </Button>
       </div>
 
-      <div className="p-6 bg-white border-t border-slate-200 mt-auto sticky bottom-0">
+      {/* FOOTER ACTIONS */}
+      <div className="p-4 bg-white border-t border-slate-200 mt-auto sticky bottom-0">
         {!isFinished ? (
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button
                 variant="destructive"
-                className="w-full h-16 text-xl font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all"
+                className="w-full h-14 text-sm font-black uppercase tracking-widest shadow-lg transition-colors duration-200 active:opacity-70"
                 disabled={isPending}
               >
                 Terminer le Match
@@ -228,7 +251,7 @@ export function RefereeRemoteControl({ match }: RemoteProps) {
           <div className="space-y-4">
             <Button
               variant="outline"
-              className="w-full h-16 text-xl font-black uppercase tracking-widest"
+              className="w-full h-14 text-sm font-black uppercase tracking-widest"
               onClick={() => router.push('/referee')}
             >
               Retour aux terrains

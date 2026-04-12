@@ -5,10 +5,28 @@ import { Button } from "@/components/ui/button";
 import { Play, Pause, RotateCcw } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
-export function RefereeTimer() {
+export function RefereeTimer({ 
+  isRunning, 
+  setIsRunning,
+  resetTrigger = 0
+}: { 
+  isRunning: boolean; 
+  setIsRunning: (val: boolean) => void;
+  resetTrigger?: number;
+}) {
   const [time, setTime] = useState(0); // Temps en secondes
-  const [isRunning, setIsRunning] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const reset = () => {
+    setIsRunning(false);
+    setTime(0);
+  };
+
+  useEffect(() => {
+    if (resetTrigger > 0) {
+      reset();
+    }
+  }, [resetTrigger]);
 
   useEffect(() => {
     if (isRunning) {
@@ -28,11 +46,6 @@ export function RefereeTimer() {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  };
-
-  const reset = () => {
-    setIsRunning(false);
-    setTime(0);
   };
 
   return (
