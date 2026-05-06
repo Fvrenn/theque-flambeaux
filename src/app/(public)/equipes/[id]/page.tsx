@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -38,16 +39,27 @@ export default async function TeamDetailsPage({ params }: Props) {
       </div>
 
       <div className="flex flex-col items-center text-center space-y-4">
-        <div 
-          className="w-24 h-24 rounded-[2.5rem] shadow-xl border-4 border-white rotate-[-3deg]"
-          style={{ backgroundColor: team.color }}
-        />
+        <div className="relative">
+          <div 
+            className="w-24 h-24 rounded-[2.5rem] shadow-xl border-4 border-white rotate-[-3deg]"
+            style={{ backgroundColor: team.color }}
+          />
+          <Badge 
+            className={`absolute -top-2 -right-2 text-[10px] font-black uppercase tracking-widest border-2 border-white shadow-md ${
+              team.category === 'PF' 
+                ? 'bg-blue-600 text-white' 
+                : 'bg-orange-600 text-white'
+            }`}
+          >
+            {team.category}
+          </Badge>
+        </div>
         <div className="space-y-1">
           <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tighter">
             {team.name}
           </h2>
           <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-            Fiche Équipe
+            Fiche Équipe • Tournoi {team.category}
           </p>
         </div>
       </div>

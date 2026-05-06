@@ -4,6 +4,8 @@ import { calculateMatchTournamentPoints } from "@/lib/ranking";
 import { getSettings } from "@/actions/settings.actions";
 import { ComingSoon } from "@/components/features/public/ComingSoon";
 import Link from "next/link";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Category } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -14,38 +16,68 @@ export default async function PublicHomePage() {
     return <ComingSoon tournamentDate={settings.tournamentDate} />;
   }
 
-  const liveMatches = await prisma.match.findMany({
+  const allLiveMatches = await prisma.match.findMany({
     where: { status: "IN_PROGRESS" },
     include: { teamA: true, teamB: true },
     orderBy: { updatedAt: "desc" },
   });
 
-  const recentFinished = await prisma.match.findMany({
+  const allRecentFinished = await prisma.match.findMany({
     where: { status: "FINISHED" },
     include: { teamA: true, teamB: true },
     orderBy: { updatedAt: "desc" },
-    take: 3,
   });
 
   return (
-    <div className="space-y-10 py-2">
+    <div className="py-2">
+      <Tabs defaultValue="PF" className="w-full">
+        <div className="px-2 mb-8">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="PF" className="text-sm font-bold">Tournoi PF</TabsTrigger>
+            <TabsTrigger value="F" className="text-sm font-bold">Tournoi F</TabsTrigger>
+          </TabsList>
+        </div>
+
+        <TabsContent value="PF">
+          <TournamentCategorySection 
+            category="PF" 
+            liveMatches={allLiveMatches.filter(m => m.category === "PF") as any}
+            recentFinished={allRecentFinished.filter(m => m.category === "PF").slice(0, 3) as any}
+          />
+        </TabsContent>
+
+        <TabsContent value="F">
+          <TournamentCategorySection 
+            category="F" 
+            liveMatches={allLiveMatches.filter(m => m.category === "F") as any}
+            recentFinished={allRecentFinished.filter(m => m.category === "F").slice(0, 3) as any}
+          />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+function TournamentCategorySection({ category, liveMatches, recentFinished }: { category: Category, liveMatches: any[], recentFinished: any[] }) {
+  return (
+    <div className="space-y-10">
       <section>
         <div className="flex items-center justify-between mb-6 px-2">
           <div className="flex items-center gap-2">
             <div className="h-3 w-3 rounded-full bg-red-400 animate-ping" />
-            <h2 className="text-xs font-black uppercase tracking-[0.2em] text-slate-800">Matchs en Live</h2>
+            <h2 className="text-xs font-black uppercase tracking-[0.2em] text-slate-800">Matchs en Live {category}</h2>
           </div>
           <span className="text-[10px] font-bold text-kawaii-pink bg-kawaii-pink/10 px-3 py-1 rounded-full uppercase">Direct</span>
         </div>
 
-        <LiveMatches initialMatches={liveMatches as any} />
+        <LiveMatches initialMatches={liveMatches} category={category} />
       </section>
 
       {recentFinished.length > 0 && (
         <section>
           <div className="flex items-center gap-2 mb-6 px-2">
             <div className="h-1.5 w-1.5 rounded-full bg-kawaii-blue" />
-            <h2 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Derniers Scores</h2>
+            <h2 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Derniers Scores {category}</h2>
           </div>
           <div className="space-y-4">
             {recentFinished.map((match) => {

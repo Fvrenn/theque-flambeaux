@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { Category } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
 export async function createTournament(name: string, numberOfFields: number) {
@@ -24,6 +25,7 @@ interface AddTeamData {
   name: string;
   color: string;
   tournamentId: string;
+  category: Category;
   playersList?: string;
 }
 
@@ -42,6 +44,7 @@ export async function addTeamToTournament(data: AddTeamData) {
         name: data.name,
         color: data.color,
         tournamentId: data.tournamentId,
+        category: data.category,
         playersList: playersNames.join(", "), // On garde la string pour compatibilité si besoin
         players: {
           create: playersNames.map(name => ({ name }))

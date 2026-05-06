@@ -4,10 +4,12 @@ import { useState } from "react";
 import { 
   updateTeamName, 
   updateTeamColor, 
+  updateTeamCategory,
   updatePlayerName, 
   deletePlayer, 
   addPlayersToTeam 
 } from "@/actions/team.actions";
+import { Category } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,6 +27,7 @@ interface Team {
   id: string;
   name: string;
   color: string;
+  category: Category;
   players: Player[];
 }
 
@@ -32,6 +35,7 @@ export function EditTeamForm({ team }: { team: Team }) {
   const [parent] = useAutoAnimate();
   const [teamName, setTeamName] = useState(team.name);
   const [teamColor, setTeamColor] = useState(team.color);
+  const [teamCategory, setTeamCategory] = useState<Category>(team.category);
   const [newPlayers, setNewPlayers] = useState("");
   const [loading, setLoading] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -41,6 +45,7 @@ export function EditTeamForm({ team }: { team: Team }) {
     try {
       await updateTeamName(team.id, teamName);
       await updateTeamColor(team.id, teamColor);
+      await updateTeamCategory(team.id, teamCategory);
       showSuccess("Équipe mise à jour !");
     } catch (err) {
       alert("Erreur lors de la mise à jour de l'équipe");
@@ -104,13 +109,27 @@ export function EditTeamForm({ team }: { team: Team }) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="teamName">Nom de l'équipe</Label>
-              <Input 
-                id="teamName" 
-                value={teamName} 
-                onChange={(e) => setTeamName(e.target.value)} 
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="teamName">Nom de l'équipe</Label>
+                <Input 
+                  id="teamName" 
+                  value={teamName} 
+                  onChange={(e) => setTeamName(e.target.value)} 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="teamCategory">Catégorie</Label>
+                <select
+                  id="teamCategory"
+                  value={teamCategory}
+                  onChange={(e) => setTeamCategory(e.target.value as Category)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <option value="PF">Tournoi PF</option>
+                  <option value="F">Tournoi F</option>
+                </select>
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="teamColor">Couleur</Label>

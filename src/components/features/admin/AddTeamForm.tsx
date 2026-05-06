@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { addTeamToTournament } from "@/actions/tournament.actions";
+import { Category } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,10 +22,11 @@ export function AddTeamForm({ tournamentId }: { tournamentId: string }) {
     const formData = new FormData(event.currentTarget);
     const name = formData.get("name") as string;
     const color = formData.get("color") as string;
+    const category = formData.get("category") as Category;
     const playersList = formData.get("playersList") as string;
 
     try {
-      await addTeamToTournament({ name, color, tournamentId, playersList });
+      await addTeamToTournament({ name, color, tournamentId, category, playersList });
       router.refresh();
       (event.target as HTMLFormElement).reset();
     } catch (err) {
@@ -41,9 +43,23 @@ export function AddTeamForm({ tournamentId }: { tournamentId: string }) {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="teamName">Nom de l'équipe</Label>
-            <Input id="teamName" name="name" placeholder="ex: Louveteaux" required />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="teamName">Nom de l'équipe</Label>
+              <Input id="teamName" name="name" placeholder="ex: Louveteaux" required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="category">Catégorie</Label>
+              <select
+                id="category"
+                name="category"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                required
+              >
+                <option value="PF">Tournoi PF</option>
+                <option value="F">Tournoi F</option>
+              </select>
+            </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="color">Couleur</Label>

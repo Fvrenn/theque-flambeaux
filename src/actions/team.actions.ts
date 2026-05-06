@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { Category } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
 export async function updateTeamName(teamId: string, name: string) {
@@ -28,6 +29,20 @@ export async function updateTeamColor(teamId: string, color: string) {
   } catch (error) {
     console.error("Error updating team color:", error);
     throw new Error("Impossible de modifier la couleur de l'équipe");
+  }
+}
+
+export async function updateTeamCategory(teamId: string, category: Category) {
+  try {
+    const team = await prisma.team.update({
+      where: { id: teamId },
+      data: { category }
+    });
+    revalidatePath(`/admin/${team.tournamentId}`);
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating team category:", error);
+    throw new Error("Impossible de modifier la catégorie de l'équipe");
   }
 }
 

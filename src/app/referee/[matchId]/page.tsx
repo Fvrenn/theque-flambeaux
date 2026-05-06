@@ -33,9 +33,20 @@ export default async function MatchRefereePage({ params }: Props) {
             ← Terrains
           </Button>
         </Link>
-        <div className="text-center">
-          <h2 className="text-sm font-bold uppercase tracking-tight leading-none">{match.fieldName}</h2>
-          <p className="text-[10px] text-slate-400 font-medium">{match.status}</p>
+        <div className="text-center flex flex-col items-center">
+          <div className="flex items-center gap-2 mb-1">
+            <Badge 
+              className={`text-[9px] font-black tracking-widest uppercase py-0 px-1.5 border-none h-4 ${
+                match.category === 'PF' 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-orange-600 text-white'
+              }`}
+            >
+              {match.category}
+            </Badge>
+            <h2 className="text-sm font-bold uppercase tracking-tight leading-none">{match.fieldName}</h2>
+          </div>
+          <p className="text-[10px] text-slate-400 font-medium uppercase tracking-widest">Tour {match.manche} • {match.status}</p>
         </div>
         <div className="w-16" /> {/* Spacer */}
       </header>

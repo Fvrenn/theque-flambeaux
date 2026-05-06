@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Match, Team } from "@prisma/client";
+import { Badge } from "@/components/ui/badge";
+import { Match, Team, Category } from "@prisma/client";
 import Link from "next/link";
 
 interface MatchWithTeams extends Match {
@@ -10,7 +11,12 @@ interface MatchWithTeams extends Match {
   teamB: Team;
 }
 
-export function LiveMatches({ initialMatches }: { initialMatches: MatchWithTeams[] }) {
+interface LiveMatchesProps {
+  initialMatches: MatchWithTeams[];
+  category?: Category;
+}
+
+export function LiveMatches({ initialMatches, category }: LiveMatchesProps) {
   const [matches, setMatches] = useState(initialMatches);
   const [updatedMatchId, setUpdatedMatchId] = useState<string | null>(null);
 
@@ -20,6 +26,11 @@ export function LiveMatches({ initialMatches }: { initialMatches: MatchWithTeams
     source.addEventListener("matchUpdated", (event) => {
       const updatedMatch = JSON.parse(event.data);
       
+      // Si une catégorie est spécifiée, on ignore les matchs des autres catégories
+      if (category && updatedMatch.category !== category) {
+        return;
+      }
+
       setMatches((prev) => {
         const index = prev.findIndex((m) => m.id === updatedMatch.id);
         if (index === -1) {
@@ -43,7 +54,7 @@ export function LiveMatches({ initialMatches }: { initialMatches: MatchWithTeams
     });
 
     return () => source.close();
-  }, []);
+  }, [category]);
 
   if (matches.length === 0) {
     return (
@@ -62,7 +73,16 @@ export function LiveMatches({ initialMatches }: { initialMatches: MatchWithTeams
               updatedMatchId === match.id ? "ring-primary ring-offset-2 scale-[1.02]" : ""
             }`}
           >
-            <div className="bg-slate-900 text-white p-2 text-center text-[10px] font-bold uppercase tracking-widest">
+            <div className="bg-slate-900 text-white p-2 text-center text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2">
+              <Badge 
+                className={`text-[9px] font-black tracking-widest uppercase py-0 px-1.5 border-none h-4 ${
+                  match.category === 'PF' 
+                    ? 'bg-blue-500 text-white' 
+                    : 'bg-orange-500 text-white'
+                }`}
+              >
+                {match.category}
+              </Badge>
               {match.fieldName}
             </div>
             <CardContent className="p-6">

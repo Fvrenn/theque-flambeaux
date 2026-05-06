@@ -4,6 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Category } from "@prisma/client";
 
 interface Match {
   id: string;
@@ -11,6 +13,7 @@ interface Match {
   fieldName: string;
   manche: number;
   status: string;
+  category: Category;
   scoreTeamA: number;
   scoreTeamB: number;
   teamAId: string;
@@ -24,26 +27,41 @@ interface FieldScheduleProps {
 }
 
 export function FieldSchedule({ initialMatches }: FieldScheduleProps) {
+  const [selectedCategory, setSelectedCategory] = useState<Category>("PF");
   const [selectedField, setSelectedField] = useState<string | null>(null);
 
+  const categoryMatches = initialMatches.filter(m => m.category === selectedCategory);
+
   const fields = Array.from(
-    new Set(initialMatches.map((m) => m.terrain || m.fieldName))
+    new Set(categoryMatches.map((m) => m.terrain || m.fieldName))
   ).sort();
 
   const filteredMatches = selectedField
-    ? initialMatches.filter((m) => (m.terrain || m.fieldName) === selectedField)
-    : initialMatches;
+    ? categoryMatches.filter((m) => (m.terrain || m.fieldName) === selectedField)
+    : categoryMatches;
 
   return (
     <div className="space-y-6">
+      <div className="px-2">
+        <Tabs value={selectedCategory} onValueChange={(v) => {
+          setSelectedCategory(v as Category);
+          setSelectedField(null); // Reset field when changing category
+        }}>
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="PF" className="text-xs font-bold">Tournoi PF</TabsTrigger>
+            <TabsTrigger value="F" className="text-xs font-bold">Tournoi F</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+
       <div className="flex flex-wrap gap-2 justify-center px-2">
         <Button
           variant={selectedField === null ? "default" : "outline"}
           size="sm"
           onClick={() => setSelectedField(null)}
-          className="text-[10px] font-black uppercase tracking-widest rounded-full px-4"
+          className="text-[10px] font-black uppercase tracking-widest rounded-full px-4 h-8"
         >
-          Tous
+          Tous les terrains
         </Button>
         {fields.map((field) => (
           <Button
@@ -51,7 +69,7 @@ export function FieldSchedule({ initialMatches }: FieldScheduleProps) {
             variant={selectedField === field ? "default" : "outline"}
             size="sm"
             onClick={() => setSelectedField(field)}
-            className="text-[10px] font-black uppercase tracking-widest rounded-full px-4"
+            className="text-[10px] font-black uppercase tracking-widest rounded-full px-4 h-8"
           >
             {field}
           </Button>
@@ -82,6 +100,15 @@ export function FieldSchedule({ initialMatches }: FieldScheduleProps) {
                     className="text-[9px] font-black tracking-widest uppercase py-0.5 px-2 bg-slate-50 border-slate-100 text-slate-400"
                   >
                     Tour {match.manche}
+                  </Badge>
+                  <Badge
+                    className={`text-[9px] font-black tracking-widest uppercase py-0.5 px-2 border-none ${
+                      match.category === 'PF' 
+                        ? 'bg-blue-500 text-white' 
+                        : 'bg-orange-500 text-white'
+                    }`}
+                  >
+                    {match.category}
                   </Badge>
                 </div>
                 <Badge
@@ -160,7 +187,7 @@ export function FieldSchedule({ initialMatches }: FieldScheduleProps) {
         ) : (
           <div className="py-20 text-center">
             <p className="text-slate-400 italic font-medium">
-              Aucun match prévu pour le moment.
+              Aucun match prévu pour cette catégorie.
             </p>
           </div>
         )}

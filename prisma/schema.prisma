@@ -32,6 +32,7 @@ model Team {
   players         Player[]
   tournamentId    String
   tournament      Tournament    @relation(fields: [tournamentId], references: [id])
+  category        Category      @default(PF)
   matchesA        Match[]       @relation("TeamA")
   matchesB        Match[]       @relation("TeamB")
   createdAt       DateTime      @default(now())
@@ -47,6 +48,11 @@ model Player {
   updatedAt DateTime @updatedAt
 }
 
+enum Category {
+  PF
+  F
+}
+
 enum MatchStatus {
   PENDING
   IN_PROGRESS
@@ -59,6 +65,7 @@ model Match {
   teamA           Team          @relation("TeamA", fields: [teamAId], references: [id])
   teamBId         String
   teamB           Team          @relation("TeamB", fields: [teamBId], references: [id])
+  category        Category      @default(PF)
   fieldName       String
   terrain         String?
   manche          Int           @default(1)

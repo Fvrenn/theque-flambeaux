@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { updateMatch } from "@/actions/match.actions";
+import { Category } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,6 +21,7 @@ interface EditMatchDialogProps {
   matchId: string;
   initialTerrain: string | null;
   initialManche: number;
+  initialCategory: Category;
   teamAName: string;
   teamBName: string;
 }
@@ -28,6 +30,7 @@ export function EditMatchDialog({
   matchId, 
   initialTerrain, 
   initialManche,
+  initialCategory,
   teamAName,
   teamBName
 }: EditMatchDialogProps) {
@@ -36,6 +39,7 @@ export function EditMatchDialog({
   const [loading, setLoading] = useState(false);
   const [terrain, setTerrain] = useState(initialTerrain || "");
   const [manche, setManche] = useState(initialManche.toString());
+  const [category, setCategory] = useState<Category>(initialCategory);
 
   async function handleSave() {
     setLoading(true);
@@ -44,7 +48,8 @@ export function EditMatchDialog({
         matchId, 
         terrain, 
         fieldName: terrain, // On synchronise les deux pour la compatibilité
-        manche: parseInt(manche) 
+        manche: parseInt(manche),
+        category
       });
       setOpen(false);
       router.refresh();
@@ -69,6 +74,29 @@ export function EditMatchDialog({
           <p className="text-sm text-slate-500">{teamAName} vs {teamBName}</p>
         </DialogHeader>
         <div className="space-y-4 py-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="category">Catégorie</Label>
+              <select
+                id="category"
+                value={category}
+                onChange={(e) => setCategory(e.target.value as Category)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value="PF">Tournoi PF</option>
+                <option value="F">Tournoi F</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="manche">Tour (Rotation)</Label>
+              <Input 
+                id="manche" 
+                type="number"
+                value={manche} 
+                onChange={(e) => setManche(e.target.value)} 
+              />
+            </div>
+          </div>
           <div className="space-y-2">
             <Label htmlFor="terrain">Terrain</Label>
             <Input 
@@ -76,15 +104,6 @@ export function EditMatchDialog({
               value={terrain} 
               onChange={(e) => setTerrain(e.target.value)} 
               placeholder="Ex: Terrain 1"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="manche">Tour (Rotation)</Label>
-            <Input 
-              id="manche" 
-              type="number"
-              value={manche} 
-              onChange={(e) => setManche(e.target.value)} 
             />
           </div>
         </div>

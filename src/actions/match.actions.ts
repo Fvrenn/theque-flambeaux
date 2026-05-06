@@ -1,65 +1,111 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { MatchStatus } from "@prisma/client";
+import { MatchStatus, Category } from "@prisma/client";
 import { eventEmitter } from "@/lib/eventEmitter";
 
-export async function generateMatchesForTournament(tournamentId: string) {
+export async function generateMatchesForTournament(tournamentId: string, category: Category) {
   try {
     const tournament = await prisma.tournament.findUnique({
       where: { id: tournamentId },
-      include: { teams: true },
+      include: { 
+        teams: {
+          where: { category }
+        } 
+      },
     });
 
     if (!tournament) throw new Error("Tournoi non trouvé");
-    if (tournament.teams.length < 2) throw new Error("Il faut au moins 2 équipes");
+    if (tournament.teams.length < 2) throw new Error(`Il faut au moins 2 équipes dans la catégorie ${category}`);
 
     const teams = [...tournament.teams];
     const numFields = tournament.numberOfFields;
+    const fieldNames = Array.from({ length: numFields }, (_, i) => `Terrain ${i + 1}`);
+
+    // 1. Initialisation du suivi d'utilisation des terrains par chaque équipe
+    const teamFieldUsage: Record<string, Record<string, number>> = {};
+    teams.forEach(t => {
+      teamFieldUsage[t.id] = {};
+      fieldNames.forEach(f => {
+        teamFieldUsage[t.id][f] = 0;
+      });
+    });
     
-    // Algorithme de Berger (Circle Method) pour Round-Robin
+    // 2. Algorithme de Berger (Circle Method) pour Round-Robin groupé par Manches
     const n = teams.length;
     const isOdd = n % 2 !== 0;
     const virtualN = isOdd ? n + 1 : n;
     
-    const scheduledMatches = [];
     const teamIndices = Array.from({ length: virtualN }, (_, i) => i);
-
     const rounds = virtualN - 1;
     const matchesPerRound = virtualN / 2;
 
+    const matchesToCreate = [];
+
     for (let r = 0; r < rounds; r++) {
+      const roundNumber = r + 1;
+      const roundMatches = [];
+
+      // Déterminer les affrontements de cette manche
       for (let i = 0; i < matchesPerRound; i++) {
         const homeIdx = teamIndices[i];
         const awayIdx = teamIndices[virtualN - 1 - i];
         
-        // Si c'est une équipe réelle (pas le bye d'un nombre impair)
         if (!isOdd || (homeIdx < n && awayIdx < n)) {
-          scheduledMatches.push({
+          roundMatches.push({
             teamAId: teams[homeIdx].id,
             teamBId: teams[awayIdx].id,
           });
         }
       }
+
+      // 3 & 4. Assignation équitable des terrains pour cette manche
+      let availableFieldsInRound = [...fieldNames];
+
+      for (const m of roundMatches) {
+        // Si tous les terrains ont déjà été utilisés dans cette manche, on réinitialise le pool
+        if (availableFieldsInRound.length === 0) {
+          availableFieldsInRound = [...fieldNames];
+        }
+
+        // Trier les terrains disponibles par utilisation cumulée la plus basse pour les deux équipes
+        availableFieldsInRound.sort((fieldA, fieldB) => {
+          const usageA = (teamFieldUsage[m.teamAId][fieldA] || 0) + (teamFieldUsage[m.teamBId][fieldA] || 0);
+          const usageB = (teamFieldUsage[m.teamAId][fieldB] || 0) + (teamFieldUsage[m.teamBId][fieldB] || 0);
+          return usageA - usageB;
+        });
+
+        // On prend le terrain le moins utilisé
+        const selectedField = availableFieldsInRound.shift()!;
+        
+        // 5. Incrémenter les compteurs pour les deux équipes
+        teamFieldUsage[m.teamAId][selectedField]++;
+        teamFieldUsage[m.teamBId][selectedField]++;
+
+        matchesToCreate.push({
+          teamAId: m.teamAId,
+          teamBId: m.teamBId,
+          roundNumber,
+          selectedField
+        });
+      }
       
-      // Rotation : on garde le premier élément (0) et on décale les autres circulairement
+      // Rotation Berger pour la manche suivante
       const last = teamIndices.pop()!;
       teamIndices.splice(1, 0, last);
     }
 
-    // Création des matchs en base avec répartition sur les terrains
-    const createMatches = scheduledMatches.map((m, index) => {
-      const fieldIndex = (index % numFields) + 1;
-      const roundNumber = Math.floor(index / numFields) + 1;
-      const terrainLabel = `Terrain ${fieldIndex}`;
+    // Création des matchs en base de données
+    const createMatches = matchesToCreate.map((m) => {
       return prisma.match.create({
         data: {
           tournamentId,
+          category,
           teamAId: m.teamAId,
           teamBId: m.teamBId,
-          fieldName: terrainLabel,
-          terrain: terrainLabel,
-          manche: roundNumber,
+          fieldName: m.selectedField,
+          terrain: m.selectedField,
+          manche: m.roundNumber,
           status: MatchStatus.PENDING,
           scoreTeamA: 0,
           scoreTeamB: 0,
@@ -74,7 +120,7 @@ export async function generateMatchesForTournament(tournamentId: string) {
     });
 
     await Promise.all(createMatches);
-    return { success: true, count: scheduledMatches.length };
+    return { success: true, count: matchesToCreate.length };
   } catch (error) {
     console.error("Error generating matches:", error);
     throw new Error("Erreur lors de la génération du planning");
@@ -86,6 +132,7 @@ interface UpdateMatchData {
   fieldName?: string;
   terrain?: string;
   manche?: number;
+  category?: Category;
 }
 
 export async function updateMatch(data: UpdateMatchData) {
@@ -96,6 +143,7 @@ export async function updateMatch(data: UpdateMatchData) {
         fieldName: data.fieldName,
         terrain: data.terrain,
         manche: data.manche,
+        category: data.category,
       },
       include: { teamA: true, teamB: true }
     });

@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { generateMatchesForTournament } from "@/actions/match.actions";
+import { Category } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -17,7 +18,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Loader2 } from "lucide-react";
 
-export function GenerateMatchesButton({ tournamentId }: { tournamentId: string }) {
+interface GenerateMatchesButtonProps {
+  tournamentId: string;
+  category: Category;
+}
+
+export function GenerateMatchesButton({ tournamentId, category }: GenerateMatchesButtonProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +32,7 @@ export function GenerateMatchesButton({ tournamentId }: { tournamentId: string }
     setError(null);
     startTransition(async () => {
       try {
-        await generateMatchesForTournament(tournamentId);
+        await generateMatchesForTournament(tournamentId, category);
         router.refresh();
       } catch (err) {
         setError(err instanceof Error ? err.message : "Une erreur est survenue");
@@ -35,22 +41,22 @@ export function GenerateMatchesButton({ tournamentId }: { tournamentId: string }
   }
 
   return (
-    <div className="flex flex-col items-center gap-4 py-8">
+    <div className="flex flex-col items-center gap-4">
       <AlertDialog>
         <AlertDialogTrigger asChild>
           <Button 
-            className="px-8 py-6 text-lg font-bold bg-primary hover:bg-princeton-orange-600 shadow-lg"
+            className="w-full bg-primary hover:bg-princeton-orange-600 shadow-lg"
             disabled={isPending}
           >
-            {isPending ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
-            {isPending ? "Génération..." : "Générer le Planning"}
+            {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            {isPending ? "Génération..." : `Générer le Planning ${category}`}
           </Button>
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Générer le planning ?</AlertDialogTitle>
+            <AlertDialogTitle>Générer le planning {category} ?</AlertDialogTitle>
             <AlertDialogDescription>
-              Cette action créera tous les matchs possibles pour ce tournoi. Voulez-vous continuer ?
+              Cette action créera tous les matchs possibles pour la catégorie {category}. Voulez-vous continuer ?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
